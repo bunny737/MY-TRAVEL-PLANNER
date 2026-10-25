@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load enquiry %}
+{% block title %}Request a quote | {{ site.name }}{% endblock %}
+{% block meta_description %}Tell us about your trip and independent local partners can send you quotes. Free to ask.{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+{% block sticky_cta %}{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Free enquiry" title="Request a quote" lead="Tell us about your trip. Sending an enquiry is free." %}
+{% endblock %}
+{% block content %}
+  {% if throttled %}
+    <div class="throttled-notice" role="alert">
+      <p class="field-error">We have received several enquiries from your connection just now. Please try again a little later{% if site.whatsapp_number %}, or <a href="https://wa.me/{{ site.whatsapp_number }}" rel="noopener">message us on WhatsApp</a>{% endif %}.</p>
+    </div>
+  {% endif %}
+  <div class="enquiry-layout">
+    <div class="quote-box standalone-quote-box">
+      {% enquiry_form form %}
+    </div>
+    <aside class="enquiry-aside">
+      <h2>What happens next</h2>
+      <ol class="mini-steps">
+        <li><strong>We read your enquiry</strong><span>and check the details with you if anything is unclear.</span></li>
+        <li><strong>One local partner quotes</strong><span>we share your details with one suitable partner, who contacts you.</span></li>
+        <li><strong>You decide</strong><span>there is no obligation to book.</span></li>
+      </ol>
+      {% if site.response_hours %}<p class="enquiry-hours"><span class="hours-dot"></span> Reply hours: {{ site.response_hours }}</p>{% endif %}
+    </aside>
+  </div>
+{% endblock %}

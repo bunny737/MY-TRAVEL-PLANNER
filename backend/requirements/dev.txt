@@ -1,0 +1,8 @@
+-r base.txt
+pytest-django==4.*
+pytest-cov==5.*
+factory-boy==3.*
+ipython
+django-extensions==3.*
+pydot==3.*
+Pillow==13.*

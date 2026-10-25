@@ -1,0 +1,29 @@
+{% load photos %}{% if entries %}
+<ul class="destination-cards">
+  {% for entry in entries %}
+    {% with d=entry.destination %}
+      <li class="destination-card" id="{{ d.slug }}">
+        <a class="destination-card-media" href="{{ entry.href }}" tabindex="-1" aria-hidden="true">
+          {% photo d.hero_key css_class="destination-card-img" sizes="(max-width: 700px) 90vw, 30vw" %}
+        </a>
+        <div class="destination-card-body">
+          {% if heading_level == 2 %}<h2>{{ d.name }}</h2>{% else %}<h3>{{ d.name }}</h3>{% endif %}
+          {% if d.summary %}<p>{{ d.summary }}</p>{% endif %}
+          {% if entry.pages %}
+            <ul class="destination-page-links">
+              {% for page in entry.pages %}<li><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></li>{% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <div class="destination-card-actions">
+          {% if entry.primary %}
+            <a class="button button-saffron" href="{{ entry.primary.get_absolute_url }}">View trips &amp; free quotes</a>
+          {% else %}
+            <a class="button button-saffron" href="{% url 'core:enquiry' %}">Ask for a free quote</a>
+          {% endif %}
+        </div>
+      </li>
+    {% endwith %}
+  {% endfor %}
+</ul>
+{% endif %}

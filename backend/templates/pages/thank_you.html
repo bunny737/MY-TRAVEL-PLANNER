@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Thank you | {{ site.name }}{% endblock %}
+{% block meta_description %}We have received your enquiry.{% endblock %}
+{% block robots %}noindex,nofollow{% endblock %}
+{% block sticky_cta %}{% endblock %}
+{% block content %}
+  {# Present only on the first view after a new (non-duplicate) lead; static/js/tracking.js reports it once. No personal data. #}
+  {% if fire_conversion %}<span hidden data-lead-conversion{% if tracking.ads_form_send_to %} data-ads-send-to="{{ tracking.ads_form_send_to }}"{% endif %}></span>{% endif %}
+  <div class="thank-you-card">
+    <div class="success-icon-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h1>Thank you</h1>
+    <p class="thank-you-message">We have received your enquiry. We will check your trip details and, as you agreed, pass them to one suitable local partner who will contact you with a quote.</p>
+    {% if site.response_hours %}<p class="thank-you-hours"><span class="hours-dot"></span> We reply during: {{ site.response_hours }}.</p>{% endif %}
+    
+    <div class="next-steps-guide">
+      <h3 class="next-steps-title">What happens next</h3>
+      <div class="steps-flow">
+        <div class="step-flow-item">
+          <span class="step-num">1</span>
+          <span class="step-text">Review enquiry</span>
+        </div>
+        <div class="step-flow-arrow">&rarr;</div>
+        <div class="step-flow-item">
+          <span class="step-num">2</span>
+          <span class="step-text">Local operator quotes</span>
+        </div>
+        <div class="step-flow-arrow">&rarr;</div>
+        <div class="step-flow-item">
+          <span class="step-num">3</span>
+          <span class="step-text">You decide</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="thank-you-actions">
+      <p><a class="button button-saffron" href="/">Back to the home page</a></p>
+    </div>
+  </div>
+{% endblock %}
+

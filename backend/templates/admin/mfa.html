@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+{# Second step of the admin login (config/admin_site.py). Rendered without the admin's normal navigation. #}
+{% block extrastyle %}{{ block.super }}
+<style>
+  .mfa { max-width: 34rem; }
+  .mfa-qr { width: 216px; height: 216px; padding: 8px; background: #fff; border: 1px solid #ccc; margin: 1rem 0; }
+  .mfa-qr svg { width: 100%; height: 100%; }
+  .mfa-secret { font-family: monospace; font-size: 1.05rem; letter-spacing: 0.06em; }
+  .mfa form p { margin: 1rem 0; }
+  .mfa input[name="token"] { font-size: 1.4rem; letter-spacing: 0.2em; width: 9rem; }
+</style>
+{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content %}
+<div id="content-main" class="mfa">
+  {% if enrolling %}
+    <p>Admin sign-in needs a second step. Scan this code with an authenticator app (Google Authenticator, Microsoft
+      Authenticator, 1Password or similar), then type the 6-digit code it shows. You only do this once.</p>
+    <div class="mfa-qr" aria-label="QR code for your authenticator app">{{ qr_svg }}</div>
+    <p>Can't scan it? In the app choose "enter a setup key" and type: <span class="mfa-secret">{{ secret }}</span></p>
+    <p>Keep this page private. Anyone who sees this code can create sign-in codes for your account.</p>
+  {% else %}
+    <p>Enter the 6-digit code from your authenticator app.</p>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.token.errors }}
+    <p>{{ form.token.label_tag }} {{ form.token }}</p>
+    <input type="hidden" name="next" value="{{ next }}">
+    <input type="submit" value="{% if enrolling %}Confirm and continue{% else %}Verify{% endif %}">
+  </form>
+
+  <form method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <p><button type="submit" class="button">Sign out</button></p>
+  </form>
+  <p class="help">Lost the phone with your authenticator? Whoever runs the server can run
+    <code>python manage.py reset_admin_mfa &lt;username&gt;</code>; you then set up a new one at your next sign-in.</p>
+</div>
+{% endblock %}

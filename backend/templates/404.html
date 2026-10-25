@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Page not found | {{ site.name }}{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+{% block sticky_cta %}{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Error 404" title="Page not found" lead="We couldn't find that page. It may have moved, or the link may be mistyped." %}
+{% endblock %}
+{% block content %}
+  <p class="cta-row"><a class="button button-saffron" href="/">Go to the home page</a> <a class="button button-outline" href="{% url 'core:enquiry' %}">Request a quote</a></p>
+{% endblock %}

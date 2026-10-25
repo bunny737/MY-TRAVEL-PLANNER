@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load photos %}
+{% block title %}Photo credits | {{ site.name }}{% endblock %}
+{% block meta_description %}Who took the photographs used on {{ site.name }}, and the open licences they are shared under.{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+{% block sticky_cta %}{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Credits" title="Photo credits" lead="The photographs on this site are by independent photographers and are shared under open licences. We cropped and resized them for the web. They show Araku Valley, Lambasingi, Vizag and the Eastern Ghats region; they are not photographs of any partner's vehicles, tours or properties." %}
+{% endblock %}
+{% block content %}
+
+  <ul class="credits-list">
+    {% for item in photos %}
+      <li class="credit-item">
+        {% photo item.key css_class="credit-thumb" sizes="160px" %}
+        <div class="credit-text">
+          <h2>{{ item.title }}</h2>
+          <p>{{ item.alt }}.</p>
+          <p class="muted">Photo by {{ item.author }}, licensed under <a href="{{ item.licence_url }}" rel="license noopener">{{ item.licence }}</a>. <a href="{{ item.source_url }}" rel="noopener">Original on Wikimedia Commons</a>. {{ item.changes }}</p>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

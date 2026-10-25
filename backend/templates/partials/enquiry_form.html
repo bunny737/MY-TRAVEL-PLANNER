@@ -1,0 +1,54 @@
+<form class="enquiry-form" method="post" action="{% url 'core:enquiry' %}" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="field-error" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-grid">
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.name %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.phone %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.service_type %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.travel_date_or_month %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.travellers %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.pickup_city %}
+    </div>
+    <div class="form-col">
+      {% include "partials/form_field.html" with field=form.budget %}
+    </div>
+    <div class="form-col form-col-full">
+      {% include "partials/form_field.html" with field=form.notes %}
+    </div>
+  </div>
+
+  {# Bot trap: invisible to people and to assistive tech, so real visitors never fill it. #}
+  <div class="hp" aria-hidden="true">
+    <label for="id_website">Leave this field empty</label>
+    <input type="text" name="website" id="id_website" tabindex="-1" autocomplete="off">
+  </div>
+
+  <div class="field consent consent-card{% if form.consent_given.errors %} has-error{% endif %}">
+    <div class="consent-checkbox-wrap">
+      <input type="checkbox" name="consent_given" id="{{ form.consent_given.id_for_label }}" required aria-required="true"{% if form.consent_given.errors %} aria-invalid="true" aria-describedby="consent-error"{% endif %}{% if form.consent_given.value %} checked{% endif %}>
+    </div>
+    <label for="{{ form.consent_given.id_for_label }}" class="consent-label">{% include "partials/consent_notice.html" %} <span class="required-mark">(required)</span></label>
+  </div>
+  {% for error in form.consent_given.errors %}<p class="field-error" id="consent-error" role="alert">{{ error }}</p>{% endfor %}
+
+  {% include "partials/referral_disclosure.html" %}
+  <button type="submit" class="button button-submit">
+    <span>Request free quotes</span>
+    <span class="btn-arrow">&rarr;</span>
+  </button>
+</form>
+

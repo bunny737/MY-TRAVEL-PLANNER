@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Terms of Use | {{ site.name }}{% endblock %}
+{% block meta_description %}The terms for using {{ site.name }}: we refer travellers to independent partners, who deliver the trips and handle bookings.{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Legal" title="Terms of Use" updated="25 October 2026" %}
+{% endblock %}
+{% block content %}
+<article class="legal-card">
+  <h2>What we do</h2>
+  {% include "partials/referral_disclosure.html" %}
+  <p>{{ site.name }} is not a tour operator, travel agency or payment service. We are not connected with any government tourism department.</p>
+
+  <h2>Enquiries are free</h2>
+  <p>Sending an enquiry costs you nothing and does not oblige you to book. We do not take payment for your trip.</p>
+
+  <h2>Quotes and prices</h2>
+  <p>Quotes come from our partners and depend on dates, vehicle, group size and inclusions. Any price or range on this website is indicative, shows the date it applies to, and can change. Only a partner's written quote for your dates applies to your booking.</p>
+
+  <h2>Bookings, changes and refunds</h2>
+  <p>Bookings, payments, changes, cancellations and refunds are between you and the partner, under that partner's terms. Please read those terms before you pay. We cannot change or refund a booking made with a partner.</p>
+
+  <h2>Partners are independent</h2>
+  <p>Partners are independent businesses. They are responsible for their vehicles, guides, stays, licences and the quality and safety of the services they provide. We choose partners with care but do not control how they deliver a trip.</p>
+
+  <h2>Using the website</h2>
+  <p>Please give accurate details in your enquiry and do not misuse the site, send spam or try to disrupt it.</p>
+
+  <h2>Limits on our responsibility</h2>
+  <p>We do not guarantee that a partner will be available, that a quote will suit you, or that information on this site is free of errors. To the extent the law allows, we are not responsible for losses arising from services delivered by partners.</p>
+
+  <h2>Your data</h2>
+  <p>How we handle your details is explained in our <a href="{% url 'core:privacy' %}">Privacy Policy</a>.</p>
+
+  <h2>Changes and contact</h2>
+  <p>We may update these terms and will show the date of the latest update above. Questions: see our <a href="{% url 'core:contact' %}">contact page</a>.</p>
+</article>
+{% endblock %}

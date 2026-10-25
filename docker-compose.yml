@@ -1,0 +1,44 @@
+# Explicit project name so containers/volumes never collide with other local projects
+# (e.g. pg-management-web, which owns host ports 3000, 5433, 6379, 8000).
+name: tours-and-travels
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      # Bootstrap superuser — admin only. The app connects as the non-superuser
+      # app_user created by init.sql (it also needs CREATEDB for the test database).
+      POSTGRES_DB: travel_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-app-user.sql:ro
+    ports:
+      # Host port 5440 -> container 5432. Inside Compose the app still uses db:5432.
+      - "${DB_HOST_PORT:-5440}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./backend
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+      # Read-only, so tests can check the deploy files at the same relative path as in CI (../deploy).
+      - ./deploy:/deploy:ro
+    env_file: .env
+    ports:
+      # Host port 8100 -> container 8000.
+      - "${WEB_HOST_PORT:-8100}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,17 @@
+{% if variant == 'footer' %}
+  {% for entry in entries %}<li><a href="{{ entry.href }}">{{ entry.destination.name }}</a></li>{% endfor %}
+  <li><a href="{{ hub_url }}">All destinations</a></li>
+{% else %}
+  <li class="nav-dropdown-item">
+    {# <details> opens on click or tap with no JavaScript; the mobile menu shows the same list inline. #}
+    <details class="nav-dropdown">
+      <summary class="nav-link{% if current_path == hub_url %} active{% endif %}">Destinations</summary>
+      <ul class="nav-dropdown-list">
+        {% for entry in entries %}
+          <li><a class="nav-dropdown-link{% if entry.primary and current_path == entry.href %} active{% endif %}" href="{{ entry.href }}">{{ entry.destination.name }}</a></li>
+        {% endfor %}
+        <li><a class="nav-dropdown-link nav-dropdown-all" href="{{ hub_url }}">All destinations &rarr;</a></li>
+      </ul>
+    </details>
+  </li>
+{% endif %}

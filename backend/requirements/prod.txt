@@ -1,0 +1,3 @@
+-r base.txt
+# Optional error reporting; enable by setting SENTRY_DSN (events must never contain lead PII).
+sentry-sdk==2.*

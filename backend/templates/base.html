@@ -1,0 +1,135 @@
+{% load static %}{% load cta %}{% load photos %}{% load destinations %}<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site.name }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{% endblock %}">
+  <meta name="robots" content="{% block robots %}index,follow{% endblock %}">
+  {% block canonical %}<link rel="canonical" href="{{ site.base_url }}{{ request.path }}">{% endblock %}
+  {% if tracking.site_verification %}<meta name="google-site-verification" content="{{ tracking.site_verification }}">{% endif %}
+  <meta name="theme-color" content="#2d6a4f">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  {# Link previews (WhatsApp, social). The image is a licensed library photo, see /photo-credits/. #}
+  {% with og_key=og_image_key|default:"valley-dusk" %}
+  {% photo_url og_key 1600 as og_image %}
+  {% photo_alt og_key as og_image_alt %}
+  <meta property="og:site_name" content="{{ site.name }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}{{ site.name }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ site.base_url }}{{ request.path }}{% endblock %}">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:alt" content="{{ og_image_alt }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {% endwith %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% if tracking.ga4_id or tracking.ads_id %}<script src="{% static 'js/tracking.js' %}" defer data-tracking data-ga4-id="{{ tracking.ga4_id }}" data-ads-id="{{ tracking.ads_id }}"></script>{% endif %}
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-container">
+      <a class="brand" href="/">
+        <span class="brand-icon-wrapper" aria-hidden="true">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+          </svg>
+        </span>
+        <span class="brand-name">{{ site.name }}</span>
+      </a>
+      {% block nav %}
+        <nav class="site-nav" aria-label="Main Navigation">
+          <input type="checkbox" id="navToggle" class="nav-toggle-check" aria-label="Toggle navigation menu">
+          <label for="navToggle" class="nav-toggle">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </label>
+          <div class="nav-menu" id="navMenu">
+            <ul class="nav-list">
+              <li><a href="{% url 'core:home' %}" class="nav-link{% if request.path == '/' %} active{% endif %}">Home</a></li>
+              {% destination_menu %}
+              <li><a href="{% url 'core:enquiry' %}" class="nav-link{% if request.path == '/enquiry/' %} active{% endif %}">Request Quote</a></li>
+              <li><a href="{% url 'core:contact' %}" class="nav-link{% if request.path == '/contact/' %} active{% endif %}">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+              {% if site.contact_phone %}
+                {% call_cta label=site.contact_phone css_class="nav-phone" %}
+              {% endif %}
+              {% if site.whatsapp_number %}
+                {% whatsapp_cta label="WhatsApp" css_class="button button-whatsapp button-nav-whatsapp" %}
+              {% endif %}
+              <a class="button button-saffron button-nav-quote" href="{% url 'core:enquiry' %}">Get Free Quotes</a>
+            </div>
+          </div>
+        </nav>
+      {% endblock %}
+    </div>
+  </header>
+  <main id="main" class="site-main">
+    {% block main %}
+      {% block page_header %}{% endblock %}
+      <div class="container page-body">
+        {% block content %}{% endblock %}
+      </div>
+      {% block after_content %}{% endblock %}
+    {% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-container">
+      {% block footer %}
+        <div class="footer-grid">
+          <div class="footer-col brand-col">
+            <div class="footer-brand">
+              <span class="brand-icon-wrapper" aria-hidden="true">
+                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+              </span>
+              {{ site.name }}
+            </div>
+            <p class="footer-tagline">We connect travellers with independent local tour and cab partners for trips to Araku Valley, Lambasingi, Vizag and the Eastern Ghats. Asking for a quote is free.</p>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-heading">Destinations</h4>
+            <ul class="footer-link-list">
+              {% destination_menu variant="footer" %}
+              <li><a href="{% url 'core:enquiry' %}">Request Free Quote</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-heading">Trust &amp; Legal</h4>
+            <nav class="footer-links" aria-label="Legal and contact">
+              <a href="{% url 'core:contact' %}">Contact</a>
+              <a href="{% url 'core:privacy' %}">Privacy</a>
+              <a href="{% url 'core:terms' %}">Terms</a>
+              <a href="{% url 'core:photo_credits' %}">Photo credits</a>
+            </nav>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-heading">Get in touch</h4>
+            <ul class="footer-link-list footer-contact">
+              {% if site.whatsapp_number %}<li>{% whatsapp_cta label="WhatsApp us" css_class="footer-contact-link" %}</li>{% endif %}
+              {% if site.contact_phone %}<li>{% call_cta label=site.contact_phone css_class="footer-contact-link" %}</li>{% endif %}
+              {% if site.contact_email %}<li><a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a></li>{% endif %}
+              <li><a href="{% url 'core:contact' %}">Contact page</a></li>
+            </ul>
+            {% if site.response_hours %}
+              <p class="footer-hours"><span class="hours-dot"></span> Replies: {{ site.response_hours }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>{{ site.name }} is a travel enquiry and referral platform. Trips are delivered by independent partners.</p>
+          <p>&copy; {% now "Y" %} {{ site.name }}. All rights reserved.</p>
+        </div>
+      {% endblock %}
+    </div>
+  </footer>
+  {% block sticky_cta %}{% include "partials/sticky_cta.html" %}{% endblock %}
+  {% block extra_body %}{% endblock %}
+</body>
+</html>

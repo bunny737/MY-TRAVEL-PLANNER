@@ -1,0 +1,2 @@
+# Files not uploaded to Cloud Build (deploy/cloudrun/deploy.sh). Same list as the Docker build context.
+#!include:.dockerignore

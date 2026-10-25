@@ -1,0 +1,19 @@
+{% load photos %}{% if gallery %}
+<section class="gallery-section" aria-label="{{ heading|default:'Photos' }}">
+  <div class="section-heading-wrap">
+    <span class="eyebrow">Photo gallery</span>
+    <h2>{{ heading|default:"Scenes from the region" }}</h2>
+    <p class="section-lead">Photographs by independent photographers, shared under open licences. They show the region, not our partners' vehicles or services. <a href="{% url 'core:photo_credits' %}">Photo credits</a>.</p>
+  </div>
+  <ul class="gallery-grid">
+    {% for item in gallery %}
+      <li class="gallery-item">
+        <figure>
+          {% photo item.key css_class="gallery-img" sizes="(max-width: 700px) 90vw, 24vw" %}
+          <figcaption>{{ item.alt }}</figcaption>
+        </figure>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

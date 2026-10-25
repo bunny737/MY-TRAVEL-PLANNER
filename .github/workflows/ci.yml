@@ -1,0 +1,66 @@
+# Goes green once Module 01 (foundation) adds backend/manage.py and config/settings.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: rootpw
+          POSTGRES_DB: travel_platform
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: rootpw
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DB_NAME: travel_platform
+      DB_HOST: localhost
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SECRET_KEY: ci-only-secret-key
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/*.txt
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gettext graphviz
+      - run: pip install -r requirements/dev.txt
+      # Mirrors docker/postgres/init.sql: a NON-superuser that may create the test DB.
+      - name: Create the test role
+        run: |
+          psql -d postgres -c "CREATE ROLE app_user LOGIN PASSWORD 'app_password' NOSUPERUSER CREATEDB"
+          psql -d travel_platform -c "GRANT ALL ON SCHEMA public TO app_user"
+      - run: python manage.py makemigrations --check --dry-run
+      # Same check production start-up runs, with prod settings and CI-only throwaway values.
+      - name: Production deploy check
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.prod
+          SECRET_KEY: ci-only-secret-key-ci-only-secret-key-ci-only-secret-key
+          ALLOWED_HOSTS: example.test
+          SITE_BASE_URL: https://example.test
+          ADMIN_URL_PATH: ci-owner-desk/
+          CACHE_BACKEND: db
+        run: python manage.py check --deploy --fail-level ERROR
+      - run: python manage.py test --noinput --parallel 4

@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Django
+*.log
+*.pot
+db.sqlite3
+media/
+staticfiles/
+backend/erd.png
+
+# Environment
+.env
+.venv/
+venv/
+env/
+*service-account*.json
+secrets/
+
+# Production config (filled copy of deploy/cloudrun/env.prod.yaml.example)
+deploy/cloudrun/env.prod.yaml
+
+# Database dumps / backups (contain lead PII)
+*.dump
+*.dump.gpg
+*.sql.gz
+backups/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Docker
+*.override.yml
+
+# Claude Code local state
+.claude/settings.local.json

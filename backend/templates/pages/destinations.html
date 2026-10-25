@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load destinations %}
+{% block title %}Destinations: Araku Valley, Lambasingi and Vizag | {{ site.name }}{% endblock %}
+{% block meta_description %}The places we can arrange free quotes for, from independent local tour and cab partners: Araku Valley, Lambasingi, Vizag and more.{% endblock %}
+{% block og_title %}Destinations | {{ site.name }}{% endblock %}
+{% block og_description %}Free quotes from independent local partners for trips to Araku Valley, Lambasingi and Vizag.{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Where we can help" title="Destinations" lead="Pick a place to see its trip pages, or ask for a free quote. Independent local partners plan and deliver the trips." %}
+{% endblock %}
+{% block content %}
+  {% destination_cards heading_level=2 %}
+  {% include "partials/referral_disclosure.html" %}
+  <section class="destinations-help">
+    <h2>Visiting more than one place?</h2>
+    <p>Many trips combine the hills and the coast. Tell us every stop in the notes of your enquiry and the partner can quote for the whole trip.</p>
+    {% url 'core:enquiry' as enquiry_url %}
+    {% include "partials/cta_block.html" with quote_href=enquiry_url %}
+  </section>
+{% endblock %}

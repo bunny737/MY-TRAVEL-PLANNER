@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy | {{ site.name }}{% endblock %}
+{% block meta_description %}What personal details {{ site.name }} collects for trip enquiries, who they are shared with, and how to withdraw or delete them.{% endblock %}
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Legal" title="Privacy Policy" updated="25 October 2026" %}
+{% endblock %}
+{% block content %}
+<article class="legal-card">
+
+  <h2>Who we are</h2>
+  <p>{{ site.name }} is a travel enquiry and referral service. We help travellers get quotes from independent local tour, cab and stay providers (our "partners"). We do not run the tours ourselves and we do not take payment for your trip.</p>
+
+  <h2>What we collect</h2>
+  <ul>
+    <li>The details you give in an enquiry: your name, phone number, the service you want (tour or cab), travel date or month, number of travellers, and, if you choose to add them, your pickup city, budget and notes.</li>
+    <li>Messages you send us on WhatsApp or by phone, if you contact us that way.</li>
+    <li>Basic information about how you reached the site (for example the ad campaign or page you came from), so we can see which pages and ads work.</li>
+  </ul>
+
+  <h2>Why we use it</h2>
+  <p>Only to understand your trip, contact you, and get you quotes. We do not use your details for anything unrelated, and we do not send marketing messages unless you separately agree to receive them.</p>
+
+  <h2>Who we share it with</h2>
+  <p>With your permission, we share your name, phone number and trip details with <strong>one</strong> selected independent partner so they can contact you with a quote. We ask you again before sharing with any other partner. Partners may use your details only to quote for and deliver the trip you asked about, not for unrelated marketing or resale. We do not sell your personal data.</p>
+
+  <h2>Partners deliver your trip</h2>
+  <p>Once a partner contacts you, bookings, payments and the trip itself are handled between you and that partner, under their terms.</p>
+
+  <h2>Analytics and advertising</h2>
+  <p>We may use Google Analytics and Google Ads measurement to count visits and enquiries. We do not put your name, phone number or enquiry details into these tools.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep enquiry details only as long as needed to handle your enquiry and any follow-up on a resulting booking, after which we delete or anonymise them.</p>
+
+  <h2>Your choices</h2>
+  <p>You can ask us at any time to withdraw your consent, correct your details, or delete your enquiry.{% if site.contact_email %} Email us at <a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a>{% if site.whatsapp_number %} or message us on WhatsApp{% endif %}.{% else %} Use the details on our <a href="{% url 'core:contact' %}">contact page</a>.{% endif %} If you withdraw consent, we stop sharing your details; details already given to a partner are governed by that partner's own handling of your enquiry, and we will ask them to stop using them.</p>
+
+  <h2>Security</h2>
+  <p>Enquiry details are kept in a private system that only the site owner can access, over encrypted connections.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: see our <a href="{% url 'core:contact' %}">contact page</a>.</p>
+</article>
+{% endblock %}
