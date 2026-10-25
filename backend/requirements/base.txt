@@ -1,7 +1,7 @@
 Django==5.2.*
 psycopg[binary]==3.*
 django-environ==0.11.*
-gunicorn==23.*
+gunicorn==26.*
 whitenoise==6.*
 # Admin MFA (owner decision 2026-10-25): authenticator-app codes for the Django admin.
 django-otp==1.7.*
