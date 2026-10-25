@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
+from django.utils import timezone
 from django.utils.html import format_html
 
 from . import images
@@ -87,11 +90,29 @@ class ContentPageForm(forms.ModelForm):
         fields = '__all__'
 
 
+class PriceStatusFilter(admin.SimpleListFilter):
+    title = 'price'
+    parameter_name = 'price_status'
+
+    def lookups(self, request, model_admin):
+        return [('current', 'Showing (quote is recent)'), ('stale', 'Hidden (quote too old)'), ('none', 'No price set')]
+
+    def queryset(self, request, queryset):
+        cutoff = timezone.localdate() - timedelta(days=settings.PRICE_MAX_AGE_DAYS)
+        if self.value() == 'current':
+            return queryset.filter(price_from__isnull=False, price_quoted_on__gte=cutoff)
+        if self.value() == 'stale':
+            return queryset.filter(price_from__isnull=False, price_quoted_on__lt=cutoff)
+        if self.value() == 'none':
+            return queryset.filter(price_from__isnull=True)
+        return queryset
+
+
 @admin.register(ContentPage)
 class ContentPageAdmin(admin.ModelAdmin):
     form = ContentPageForm
-    list_display = ('title', 'page_type', 'status', 'destination', 'sort_order', 'updated_at', 'view_on_site')
-    list_filter = ('status', 'page_type', 'destination')
+    list_display = ('title', 'page_type', 'status', 'destination', 'price_status', 'sort_order', 'updated_at', 'view_on_site')
+    list_filter = ('status', 'page_type', 'destination', PriceStatusFilter)
     search_fields = ('title', 'slug', 'intro')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('published_at', 'updated_at')
@@ -99,6 +120,14 @@ class ContentPageAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('page_type', 'title', 'slug', 'destination', 'status', 'sort_order', 'hero_image')}),
         ('Content', {'fields': ('intro', 'duration', 'body', 'itinerary', 'inclusions', 'exclusions', 'faq')}),
+        ('Price (from a dated partner quote)', {
+            'fields': ('price_from', 'price_unit', 'price_basis', 'price_quoted_on', 'price_partner', 'price_options'),
+            'description': (
+                'Optional. Fill all five or none. Only package, cab and stay pages can show a price. The price shows '
+                'with its quote date and hides itself when the quote is older than the limit set in PRICE_MAX_AGE_DAYS. '
+                'The partner is never shown to visitors.'
+            ),
+        }),
         ('Search engines', {'fields': ('meta_title', 'meta_description', 'canonical_override')}),
         ('Record', {'fields': ('published_at', 'updated_at', 'internal_notes')}),
     )
@@ -106,6 +135,12 @@ class ContentPageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         warn_if_cab_supply_missing(self, request, obj)
+
+    @admin.display(description='Price')
+    def price_status(self, obj):
+        if not obj.has_price:
+            return '-'
+        return 'Showing' if obj.price_is_current else 'Hidden: refresh the quote'
 
     @admin.display(description='Live page')
     def view_on_site(self, obj):

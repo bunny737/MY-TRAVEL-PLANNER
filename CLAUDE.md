@@ -40,8 +40,11 @@ notifications, no public REST API. Mobile visitors are served by the responsive 
 
 3. HONEST CLAIMS: We are a referral platform. Never write "cheapest", "official", "guaranteed",
    "instant confirmation", invented ratings/reviews, fake scarcity, or an unsourced price. Every
-   price shown is a dated, sourced range or "request a current quote". Package and cab pages show NO
-   prices at all (owner decision 2026-10-25); they invite a free quote. Never imply Andhra Pradesh
+   price shown is a dated, sourced range or "request a current quote". The only prices on the site are a
+   "from" amount on a package, cab or stay page, copied from a dated partner quote into that page's price
+   fields (owner decision 2026-10-25, revised the same day: it replaces "no prices at all"). It shows with
+   its quote date, never names the partner, and hides itself after PRICE_MAX_AGE_DAYS. Guides, articles and
+   free-text fields never hold a price. Never imply Andhra Pradesh
    tourism affiliation. Partner claims are published only with the partner's consent.
 
 4. LEAD DATA IS PRIVATE: No lead endpoint that returns data publicly. No personal data in URLs,

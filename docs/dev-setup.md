@@ -23,6 +23,19 @@ Create the starting content (Araku Valley, Lambasingi and Vizag destinations, an
 ```bash
 docker compose run --rm web python manage.py seed_launch_content
 ```
+Then the rest of the launch set: 32 more DRAFT pages (packages, cabs, stays, guides, blog articles) and the Vanjangi and Maredumilli
+destinations. Safe to run twice; it never publishes, never sets a price and never overwrites a page:
+```bash
+docker compose run --rm web python manage.py seed_site_content
+```
+To show a price on a package, cab or stay page, enter it in that page's "Price (from a dated partner quote)" section in admin, from a quote the
+partner gave you; it hides itself after `PRICE_MAX_AGE_DAYS` (90) days. The nine launch package prices from the partner can be filled in one go
+(create the Partner row in admin first; it never overwrites a price that is already set):
+```bash
+docker compose run --rm web python manage.py set_partner_prices --partner "Partner business name"
+```
+It fills 16 pages (packages and the four hotel pages) with their "from" amount and option lists. After a change to `apps/core/seed/prices.py`, add
+`--refresh` to rewrite the pages that this same partner priced (a price you entered yourself under another partner is never touched).
 Everyday commands: `docker compose logs -f web`, `docker compose exec web python manage.py shell`,
 `docker compose run --rm web python manage.py test`.
 

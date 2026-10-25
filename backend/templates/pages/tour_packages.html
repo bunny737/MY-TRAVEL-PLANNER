@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load cta %}
+{% block title %}Tour Packages, Cabs and Stays for Araku, Lambasingi and Vizag | {{ site.name }}{% endblock %}
+{% block meta_description %}Browse trips, cab options and stays around Araku Valley, Lambasingi and Vizag. Ask for a free quote and an independent local partner replies.{% endblock %}
+{% block og_title %}Tour Packages, Cabs and Stays for Araku, Lambasingi and Vizag{% endblock %}
+{% block og_description %}Browse trips, cab options and stays around Araku Valley, Lambasingi and Vizag. Ask for a free quote.{% endblock %}
+
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Trips, cabs and stays" title="Tour packages, cabs and stays" lead="Pick a trip, a cab or a stay and ask for a free quote. An independent local partner prepares it for your dates and group size." %}
+{% endblock %}
+
+{% block content %}
+  {% include "partials/referral_disclosure.html" %}
+
+  {% for group in package_groups %}
+    <section class="content-section listing-section" aria-labelledby="group-{{ forloop.counter }}">
+      <div class="section-header">
+        <span class="eyebrow">Tour packages</span>
+        <h2 id="group-{{ forloop.counter }}">{% if group.destination %}{{ group.destination.name }}{% else %}More trips{% endif %}</h2>
+      </div>
+      <ul class="trip-cards">{% for trip in group.pages %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endfor %}
+
+  {% if cabs %}
+    <section id="cabs" class="content-section listing-section" aria-labelledby="cabs-heading">
+      <div class="section-header"><span class="eyebrow">Transport</span><h2 id="cabs-heading">Cabs, tempo travellers and buses</h2></div>
+      <ul class="trip-cards">{% for trip in cabs %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  {% if stays %}
+    <section id="stays" class="content-section listing-section" aria-labelledby="stays-heading">
+      <div class="section-header"><span class="eyebrow">Places to stay</span><h2 id="stays-heading">Hotels and stays</h2></div>
+      <ul class="trip-cards">{% for trip in stays %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  {% if not package_groups and not cabs and not stays %}
+    <p class="muted">Our trip pages are being prepared. You can still <a href="{% url 'core:enquiry' %}">ask for a free quote</a> and tell us where you want to go.</p>
+  {% endif %}
+{% endblock %}
+
+{% block after_content %}
+  <section class="band band-forest cta-band">
+    <div class="container cta-band-inner">
+      <h2>Not sure which trip suits you?</h2>
+      <p>Tell us your dates and group size and an independent local partner will suggest and quote. Asking is free.</p>
+      {% url 'core:enquiry' as enquiry_url %}
+      {% include "partials/cta_block.html" with quote_href=enquiry_url %}
+    </div>
+  </section>
+{% endblock %}

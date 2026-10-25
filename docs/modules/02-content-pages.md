@@ -13,7 +13,7 @@
 ## Purpose
 Serve the homepage and the commercial landing page (`/araku-tour-packages/`) from content edited in Django admin, with correct
 SEO basics. Later pages (cab, 2D/1N, itinerary, Lambasingi, guides) are just more `ContentPage` rows — no new code per page.
-**Pages never state a price** (owner decision 2026-10-25): there are no price fields, and every page invites a free quote instead.
+**Prices:** a page states a price only from its dated partner-quote fields (owner decision 2026-10-25, revised); otherwise it invites a free quote.
 
 ## Data model (as-built) — migrations core.0003, core.0004 (adds `hero_image`)
 ```
@@ -69,6 +69,37 @@ GET  /destinations/            every active Destination as a card (photo, summar
 - **Copy:** default `WHATSAPP_PREFILL_TEXT` is now "Hi, I want a tour quote."; the enquiry notes placeholder asks which places.
 - Tests: `test_destinations.py` (21).
 
+## Full site build (2026-10-25) — dated prices, stays, blog, listings (migration core.0006)
+Owner asked for a site as complete as the partner's (arakutourpackages.com), facts only and in our own words. Plan: the session's plan file;
+analysis of that site is in the chat history, the fact sheet will be `docs/research/partner-facts-2026-10.md`.
+- **Dated partner-quote prices (supersedes "no prices").** `ContentPage.price_from` (Decimal 12,2), `price_unit`, `price_basis`, `price_quoted_on`,
+  `price_partner` (FK Partner, PROTECT, internal only). All five set or none; package/cab/stay pages only; amount > 0; date not in the future.
+  `display_price` returns nothing when the quote is older than `PRICE_MAX_AGE_DAYS` (env, default 90), so a stale price hides itself and the page
+  invites a quote. Rendered by `partials/price_badge.html` (card and full variants, wrapped in `<!--price-->` markers the tests use) and the fact strip;
+  always with the quote date; the partner is never named. No Offer/Product/rating markup. Admin: "Price" fieldset, list column and a current/stale/none filter.
+- **Price options (migration core.0007, owner request: "show packages and hotels with the same prices as the partner site").** `price_options` (text, one
+  line per option: `label | amount`, amount parsed as Decimal, above zero, label at most 80 characters) lists several durations on a package page or several
+  properties on a stay page. It shares the unit, quote date and partner of the five fields and hides with them. Shown by `partials/price_options.html`
+  (inside the `<!--price-->` markers) as "Options and rates" / "Stays and rates"; a bad line is refused on save and never half-shown.
+- **New page types:** `stay` (has the enquiry form, preselects `Lead.ServiceType.STAY`) and `article` (blog; no form, CTA links). Defaults in `images.DEFAULT_FOR_TYPE`.
+- **Guide/article bodies** use `content.parse_article`: `## Heading` lines (anchored, unique ids, contents box from 3 headings) and `[photo: key]` lines
+  (registry photos only, refused on save if the key is unknown, caption carries the credit). Still escaped plain text.
+- **Listings:** `/tour-packages/` (packages by destination, `#cabs`, `#stays`) and `/blog/` (newest first; `?destination=` chips; canonical stays `/blog/`;
+  filtered URLs are not in the sitemap). Both in the sitemap; `tour-packages` and `blog` are reserved slugs.
+- **Navigation:** Tour packages ▾, Destinations ▾, Cabs & stays ▾ (published pages only, hidden when empty, no JS), Blog. Footer links to both listings.
+- **Related pages** on every content page: same destination, published, commercial first, max 6.
+- **Homepage** shows the first 6 package/cab/stay pages with a link to `/tour-packages/`.
+- **WhatsApp share** on articles: `https://wa.me/?text=<title + canonical URL>`; no `data-track`, so it is not counted as a business WhatsApp click.
+- **Photos for Vanjangi and Maredumilli (4, all CC BY-SA 4.0, licence read from the Commons file metadata):** `vanjangi-hills` (Muralikrishna m),
+  `vanjangi-sunrise` (iMahesh; cropped to the sky and clouds because the full frame shows identifiable people), `maredumilli-falls` and
+  `maredumilli-forest` (S. Sri Harsha; forest cropped to trees only). Each place now has two photos, so its gallery strip works. The library is
+  about 3.8 MB, so the whole-library test cap went from 3.5 to 4 MB.
+- Tests: `test_prices.py`, `test_blog.py`, `test_listings.py`, `test_site_seed.py`; 394 tests pass. The launch content itself is described in Module 10.
+- [DECISION 2026-10-25] Owner: reverses "no prices on package and cab pages" in favour of dated partner-quote prices. CLAUDE.md invariant 3 updated.
+  Free-text fields still never hold a price (the seed tests and `PRICE_WORDS` scans enforce it).
+- [DECISION 2026-10-25] Owner: partner photos allowed only if the partner owns them and licenses them in writing (not yet built; needs a licence
+  entry in `images.py`).
+
 ## Photos (added 2026-10-25) — see also docs/dev-setup.md "Adding a photo"
 - **Library:** 9 free-licence photos of Araku Valley from Wikimedia Commons (8 × CC BY-SA 4.0 / 2.0, 1 × CC0), each licence checked on its
   file page. Source files are cropped/resized by `scripts/optimize_photo.py` into `static/img/photos/<stem>-800|1600.webp` (about 1.9 MB
@@ -117,7 +148,8 @@ Admin: ContentPage list with filters, "Publish selected" (runs full validation, 
 1. Only `published` pages render; drafts and the home row are not served at `/<slug>/`.
 2. Every page has one H1, a unique `<title>` and meta description (duplicates are refused when saving, case-insensitively), and a
    self-canonical unless `canonical_override` (https URL or a `/path`) is set.
-3. No prices anywhere: no price fields; a test scans rendered pages (and the seed) for ₹ / Rs / INR / "price".
+3. Prices only from the five dated partner-quote fields (see "Full site build"); free text, guides, articles and the homepage never hold a
+   price. Tests scan rendered pages (and the seed) for ₹ / Rs / INR / "price" outside the `<!--price-->` blocks.
 4. The sitemap lists indexable pages only; form, thank-you, admin and health URLs are never listed. `/enquiry/` stays crawlable
    (it is linked and `noindex`; blocking it in robots.txt would hide the noindex).
 5. Each page carries the referral disclosure next to its CTAs, one form (package/cab/home), and WhatsApp CTAs near the top and after the content.

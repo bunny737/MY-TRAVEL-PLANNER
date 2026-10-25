@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Araku, Lambasingi and Vizag Travel Blog | {{ site.name }}{% endblock %}
+{% block meta_description %}Practical travel notes for Araku Valley, Lambasingi and Vizag: planning, best seasons and what to expect. Written by the {{ site.name }} team.{% endblock %}
+{% block og_title %}Araku, Lambasingi and Vizag Travel Blog{% endblock %}
+{% block og_description %}Practical travel notes for Araku Valley, Lambasingi and Vizag.{% endblock %}
+{# Filtered lists (?destination=...) point back to /blog/ so they never compete with it. #}
+{% block canonical %}<link rel="canonical" href="{{ site.base_url }}{% url 'core:blog' %}">{% endblock %}
+
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Blog" title="Travel notes for Araku, Lambasingi and Vizag" lead="Planning guides and practical notes from the team. Our trip pages link to them when they help." %}
+{% endblock %}
+
+{% block content %}
+  {% if chips|length > 1 %}
+    <nav class="chip-row" aria-label="Filter by destination">
+      <a class="chip{% if not selected %} active{% endif %}" href="{% url 'core:blog' %}">All</a>
+      {% for chip in chips %}<a class="chip{% if selected and selected.pk == chip.pk %} active{% endif %}" href="{% url 'core:blog' %}?destination={{ chip.slug }}">{{ chip.name }}</a>{% endfor %}
+    </nav>
+  {% endif %}
+
+  {% if posts %}
+    <ul class="post-list">
+      {% for post in posts %}
+        <li class="post-item">
+          <span class="post-meta">{% if post.destination %}{{ post.destination.name }} &middot; {% endif %}{{ post.published_at|date:"j M Y" }} &middot; {{ post.read_minutes }} min read</span>
+          <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+          {% if post.intro %}<p>{{ post.intro|truncatewords:36 }}</p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No articles here yet. <a href="{% url 'core:enquiry' %}">Ask for a free quote</a> and tell us what you would like to know.</p>
+  {% endif %}
+{% endblock %}

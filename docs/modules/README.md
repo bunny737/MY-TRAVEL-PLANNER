@@ -20,7 +20,7 @@ Phase 2 = triggered by volume or the first collected fee — never built specula
 | 07 | Launch & Deployment (HTTPS, backups, QA, go-live checklist) | 07-launch-deployment.md | 0 | 01–06 | 1, 15 | 🟨 (code + scripts built and tested; cloud deploy and owner go-live items open) |
 | 08 | Cab Page (`/vizag-to-araku-cab/`, gates cab ads) | 08-cab-page.md | 1 | 02, 04, 07 | 4, 6 | ✅ (built early at the owner's request; page is a draft to review and publish; no cab ads until a cab partner has agreed) |
 | 09 | Trip Cost Estimator | 09-cost-estimator.md | 1 | 02, 05, 07 | 4 | ⬜ |
-| 10 | Content Cluster (2D/1N, itinerary, Lambasingi, guides) | 10-content-cluster.md | 1 | 02, 07 | 4, 9 | ⬜ |
+| 10 | Content Cluster (2D/1N, itinerary, Lambasingi, guides) | 10-content-cluster.md | 1 | 02, 07 | 4, 9 | 🟨 (pulled forward at the owner's request: site code built; content drafts and partner fact sheet in progress) |
 | 11 | Lead Assignment & CRM (LeadAssignment, LeadEvent, response dashboard) | 11-lead-assignment-crm.md | 2 | 05, 07 | 8 | ⬜ |
 | 12 | Referral Fees (booking-fee tracking, disputes, invoicing support) | 12-referral-fees.md | 2 | 11 | 7, 8 | ⬜ |
 

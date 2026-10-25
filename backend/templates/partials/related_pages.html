@@ -1,0 +1,17 @@
+{# Other published pages for the same destination (context: related_pages). Drafts never appear. #}
+{% if related_pages %}
+  <section class="content-section related-section" aria-labelledby="related-heading">
+    <div class="section-header">
+      <span class="eyebrow">Keep exploring</span>
+      <h2 id="related-heading">More about {% if page.destination %}{{ page.destination.name }}{% else %}this trip{% endif %}</h2>
+    </div>
+    <ul class="related-list">
+      {% for item in related_pages %}
+        <li class="related-item">
+          <span class="related-type">{{ item.get_page_type_display }}</span>
+          <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}

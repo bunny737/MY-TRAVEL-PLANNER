@@ -13,7 +13,7 @@
     <div class="page-banner">{% photo hero_key css_class="page-banner-img" eager=True sizes="100vw" %}</div>
     <div class="page-photo-shade" aria-hidden="true"></div>
     <div class="container page-photo-content">
-      <nav class="breadcrumb breadcrumb-light" aria-label="Breadcrumb"><a href="{% url 'core:home' %}">Home</a> &rsaquo; <span>{{ page.title }}</span></nav>
+      <nav class="breadcrumb breadcrumb-light" aria-label="Breadcrumb"><a href="{% url 'core:home' %}">Home</a> &rsaquo; {% if page.page_type == 'article' %}<a href="{% url 'core:blog' %}">Blog</a> &rsaquo; {% endif %}<span>{{ page.title }}</span></nav>
       <span class="hero-pill">{% if page.destination %}{{ page.destination.name }}{% else %}Eastern Ghats &amp; Vizag{% endif %}</span>
       <h1>{{ page.title }}</h1>
       {% if page.intro %}<p class="lead">{{ page.intro }}</p>{% endif %}
@@ -30,9 +30,18 @@
       {% if page.duration %}
         <li class="fact"><strong>{{ page.duration }}</strong><span>{% if page.page_type == 'cab' %}Journey{% else %}Trip length{% endif %}</span></li>
       {% endif %}
-      <li class="fact"><strong>{% if page.page_type == 'cab' %}Cab with driver{% elif page.page_type == 'guide' %}Travel guide{% else %}Tour package{% endif %}</strong><span>Type</span></li>
-      {% if page.page_type != 'guide' %}
+      <li class="fact"><strong>{% if page.page_type == 'cab' %}Cab with driver{% elif page.page_type == 'guide' %}Travel guide{% elif page.page_type == 'article' %}Blog article{% elif page.page_type == 'stay' %}Stay{% else %}Tour package{% endif %}</strong><span>Type</span></li>
+      {% with price=page.display_price %}{% if price %}
+        <!--price-->
+        <li class="fact fact-price"><strong>From {{ price.amount }}</strong><span>{{ price.unit }} &middot; quote dated {{ price.quoted_on|date:"j M Y" }}</span></li>
+        <!--/price-->
+      {% endif %}{% endwith %}
+      {% if page.has_form %}
         <li class="fact"><strong>Free</strong><span>To request a quote</span></li>
+      {% endif %}
+      {% if page.page_type == 'article' and page.published_at %}
+        <li class="fact"><strong>{{ page.published_at|date:"j M Y" }}</strong><span>Published</span></li>
+        <li class="fact"><strong>{{ page.read_minutes }} min</strong><span>Read</span></li>
       {% endif %}
       <li class="fact"><strong>{{ page.updated_at|date:"j M Y" }}</strong><span>Last updated</span></li>
     </ul>
@@ -43,6 +52,7 @@
   <div class="detail-layout{% if page.has_form %} has-aside{% endif %}">
     <div class="detail-main">
       {% if not page.has_form %}{% include "partials/referral_disclosure.html" %}{% endif %}
+      {% include "partials/price_options.html" %}
 
       {% if page.itinerary_blocks and page.page_type == 'cab' %}
         {# Cab pages: the itinerary field holds vehicle, pickup-point and "what to ask" cards, not a day-by-day plan. #}
@@ -107,10 +117,39 @@
         </div>
       {% endif %}
 
-      {% if page.paragraphs %}
+      {% if page.uses_article_body %}
+        {% with segments=page.article_segments headings=page.article_headings %}
+          {% if segments %}
+            <section class="content-section page-body-prose article-body">
+              {% if headings|length >= 3 %}
+                <nav class="article-contents" aria-label="Contents">
+                  <h2 class="article-contents-title">Contents</h2>
+                  <ol>{% for heading in headings %}<li><a href="#{{ heading.anchor }}">{{ heading.text }}</a></li>{% endfor %}</ol>
+                </nav>
+              {% endif %}
+              {% for segment in segments %}
+                {% if segment.kind == 'heading' %}
+                  <h2 id="{{ segment.anchor }}">{{ segment.text }}</h2>
+                {% elif segment.kind == 'photo' %}
+                  <figure class="article-figure">
+                    {% photo segment.text css_class="article-img" sizes="(max-width: 900px) 100vw, 780px" %}
+                    <figcaption>{% photo_credit segment.text %}</figcaption>
+                  </figure>
+                {% else %}
+                  <p>{{ segment.text }}</p>
+                {% endif %}
+              {% endfor %}
+            </section>
+          {% endif %}
+        {% endwith %}
+      {% elif page.paragraphs %}
         <section class="content-section page-body-prose">
           {% for paragraph in page.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
         </section>
+      {% endif %}
+
+      {% if share_url %}
+        <p class="share-row"><a class="button button-outline" href="{{ share_url }}" target="_blank" rel="noopener">Share on WhatsApp</a></p>
       {% endif %}
 
       {% if page.faq_blocks %}
@@ -136,6 +175,7 @@
       {% endif %}
 
       {% include "partials/photo_gallery.html" with heading="Along the route" %}
+      {% include "partials/related_pages.html" %}
     </div>
 
     {% if page.has_form %}
@@ -146,6 +186,7 @@
             <h2>Request free quotes</h2>
             <p class="quote-box-lead">Tell local operators your travel dates and group details to receive personalised quotes.</p>
           </div>
+          {% include "partials/price_badge.html" %}
           {% enquiry_form service=page.form_service %}
         </section>
       </aside>
@@ -156,8 +197,8 @@
 {% block after_content %}
   <section class="band band-forest cta-band">
     <div class="container cta-band-inner">
-      <h2>{% if page.page_type == 'cab' %}Need a cab from Vizag?{% else %}Ready to plan your trip?{% endif %}</h2>
-      <p>Independent local {% if page.page_type == 'cab' %}cab operators{% else %}partners{% endif %} prepare quotes for your dates and group size. Asking is free.</p>
+      <h2>{% if page.page_type == 'cab' %}Need a cab from Vizag?{% elif page.page_type == 'stay' %}Looking for a place to stay?{% else %}Ready to plan your trip?{% endif %}</h2>
+      <p>Independent local {% if page.page_type == 'cab' %}cab operators{% elif page.page_type == 'stay' %}stay partners{% else %}partners{% endif %} prepare quotes for your dates and group size. Asking is free.</p>
       {% include "partials/cta_block.html" with quote_href=page.cta_href whatsapp_text=page.whatsapp_prefill %}
     </div>
   </section>

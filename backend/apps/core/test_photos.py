@@ -77,7 +77,7 @@ class RegistryTests(SimpleTestCase):
         self.assertTrue(images.exists(images.DEFAULT_HERO))
         for page_type, key in images.DEFAULT_FOR_TYPE.items():
             self.assertTrue(images.exists(key), page_type)
-        self.assertEqual(set(images.DEFAULT_FOR_TYPE), {'home', 'package', 'cab', 'guide'})
+        self.assertEqual(set(images.DEFAULT_FOR_TYPE), {'home', 'package', 'cab', 'stay', 'guide', 'article'})
         self.assertGreaterEqual(len(images.gallery(limit=99)), 5)
 
     def test_explore_highlights_use_real_photos_and_make_no_claims(self):
@@ -100,7 +100,8 @@ class RegistryTests(SimpleTestCase):
 
     def test_total_photo_weight_stays_modest(self):
         total = sum(f.stat().st_size for f in PHOTO_DIR.iterdir())
-        self.assertLess(total, 3.5 * 1024 * 1024)  # whole library; a page loads only its own few photos
+        # Whole library (raised from 3.5 MB when the Vanjangi and Maredumilli photos were added); a page loads only its own few photos.
+        self.assertLess(total, 4 * 1024 * 1024)
 
 
 class PhotoTagTests(SimpleTestCase):

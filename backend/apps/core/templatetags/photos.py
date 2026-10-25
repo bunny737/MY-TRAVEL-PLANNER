@@ -44,6 +44,13 @@ def photo_url(context, key, width=1600):
 
 
 @register.simple_tag
+def photo_credit(key):
+    """Short credit line for a figure caption; the full licence is on /photo-credits/."""
+    item = images.get(key)
+    return f'Photo: {item.author}, {item.licence}' if item else ''
+
+
+@register.simple_tag
 def photo_alt(key):
     item = images.get(key)
     return item.alt if item else ''

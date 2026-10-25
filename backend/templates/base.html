@@ -53,7 +53,11 @@
           <div class="nav-menu" id="navMenu">
             <ul class="nav-list">
               <li><a href="{% url 'core:home' %}" class="nav-link{% if request.path == '/' %} active{% endif %}">Home</a></li>
+              {% url 'core:tour_packages' as packages_url %}
+              {% page_menu "Tour packages" "package" packages_url %}
               {% destination_menu %}
+              {% page_menu "Cabs & stays" "cab,stay" packages_url %}
+              <li><a href="{% url 'core:blog' %}" class="nav-link{% if request.path == '/blog/' %} active{% endif %}">Blog</a></li>
               <li><a href="{% url 'core:enquiry' %}" class="nav-link{% if request.path == '/enquiry/' %} active{% endif %}">Request Quote</a></li>
               <li><a href="{% url 'core:contact' %}" class="nav-link{% if request.path == '/contact/' %} active{% endif %}">Contact</a></li>
             </ul>
@@ -97,6 +101,8 @@
             <h4 class="footer-heading">Destinations</h4>
             <ul class="footer-link-list">
               {% destination_menu variant="footer" %}
+              <li><a href="{% url 'core:tour_packages' %}">Tour packages, cabs &amp; stays</a></li>
+              <li><a href="{% url 'core:blog' %}">Blog</a></li>
               <li><a href="{% url 'core:enquiry' %}">Request Free Quote</a></li>
             </ul>
           </div>

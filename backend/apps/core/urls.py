@@ -14,6 +14,8 @@ urlpatterns = [
     path('privacy/', TemplateView.as_view(template_name='pages/privacy.html'), name='privacy'),
     path('terms/', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
     path('destinations/', views.destinations, name='destinations'),
+    path('tour-packages/', views.tour_packages, name='tour_packages'),
+    path('blog/', views.blog, name='blog'),
     path('photo-credits/', views.photo_credits, name='photo_credits'),
     path('enquiry/', views.enquiry, name='enquiry'),
     path('thank-you/', views.thank_you, name='thank_you'),

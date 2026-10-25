@@ -73,26 +73,9 @@
           <p class="section-lead">Choose a popular route or ask a local operator to personalise the stops for your group.</p>
         </div>
         <ul class="trip-cards">
-          {% for trip in trips %}
-            <li class="trip-card">
-              <a class="trip-card-media" href="{{ trip.get_absolute_url }}" tabindex="-1" aria-hidden="true">
-                {% photo trip.hero_key css_class="trip-card-img" sizes="(max-width: 700px) 90vw, 30vw" %}
-              </a>
-              {% if trip.duration %}<span class="trip-duration-badge">{{ trip.duration }}</span>{% endif %}
-              <div class="trip-card-top">
-                <span class="trip-type">{% if trip.page_type == 'cab' %}Cab{% else %}Tour package{% endif %}</span>
-                <h3><a href="{{ trip.get_absolute_url }}">{{ trip.title }}</a></h3>
-                {% if trip.intro %}<p class="trip-intro">{{ trip.intro|truncatewords:28 }}</p>{% endif %}
-              </div>
-              <div class="trip-card-bottom">
-                <a class="trip-card-link" href="{{ trip.get_absolute_url }}">
-                  <span>View details &amp; free quotes</span>
-                  <span class="link-arrow" aria-hidden="true">&rarr;</span>
-                </a>
-              </div>
-            </li>
-          {% endfor %}
+          {% for trip in trips %}{% include "partials/trip_card.html" %}{% endfor %}
         </ul>
+        <p class="section-more"><a href="{% url 'core:tour_packages' %}">{% if more_trips %}See all tour packages, cabs and stays{% else %}Tour packages, cabs and stays{% endif %} &rarr;</a></p>
       </div>
     </section>
   {% endif %}

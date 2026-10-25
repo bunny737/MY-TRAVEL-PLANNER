@@ -1,0 +1,19 @@
+{% load photos %}
+<li class="trip-card">
+  <a class="trip-card-media" href="{{ trip.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+    {% photo trip.hero_key css_class="trip-card-img" sizes="(max-width: 700px) 90vw, 30vw" %}
+  </a>
+  {% if trip.duration %}<span class="trip-duration-badge">{{ trip.duration }}</span>{% endif %}
+  <div class="trip-card-top">
+    <span class="trip-type">{% if trip.page_type == 'cab' %}Cab{% elif trip.page_type == 'stay' %}Stay{% else %}Tour package{% endif %}</span>
+    <h3><a href="{{ trip.get_absolute_url }}">{{ trip.title }}</a></h3>
+    {% if trip.intro %}<p class="trip-intro">{{ trip.intro|truncatewords:28 }}</p>{% endif %}
+    {% include "partials/price_badge.html" with page=trip compact=True %}
+  </div>
+  <div class="trip-card-bottom">
+    <a class="trip-card-link" href="{{ trip.get_absolute_url }}">
+      <span>View details &amp; free quotes</span>
+      <span class="link-arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </div>
+</li>
