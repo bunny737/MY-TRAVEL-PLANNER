@@ -23,7 +23,7 @@ Create the starting content (Araku Valley, Lambasingi and Vizag destinations, an
 ```bash
 docker compose run --rm web python manage.py seed_launch_content
 ```
-Then the rest of the launch set: 32 more DRAFT pages (packages, cabs, stays, guides, blog articles) and the Vanjangi and Maredumilli
+Then the rest of the launch set: 34 more DRAFT pages (packages, cabs, stays, guides, blog articles) and the Vanjangi and Maredumilli
 destinations. Safe to run twice; it never publishes, never sets a price and never overwrites a page:
 ```bash
 docker compose run --rm web python manage.py seed_site_content

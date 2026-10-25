@@ -35,7 +35,7 @@ Original or licensed photos only; meaningful alt text; no fabricated schema.
 - [OPEN] Peak-season (Oct–Feb) field trip to collect original notes/photos before Oct 2027 content maturity.
 
 ## Launch set (built 2026-10-25): `python manage.py seed_site_content`
-32 DRAFT pages plus the Vanjangi and Maredumilli destinations, written in our own words from `docs/research/partner-facts-2026-10.md`
+34 DRAFT pages plus the Vanjangi and Maredumilli destinations, written in our own words from `docs/research/partner-facts-2026-10.md`
 (source: the partner's public site, read 2026-10-25; every VERIFY item there is left out or phrased loosely). The data lives in
 `apps/core/seed/` (`packages.py`, `transport.py`, `guides.py`, `articles.py`, helpers in `common.py`). The command never publishes, never sets a price,
 never overwrites an existing page and is safe to run twice.
@@ -43,8 +43,9 @@ never overwrites an existing page and is safe to run twice.
   and Lambasingi 4 to 5 days; Araku honeymoon/couple; Araku group. (Plus the 3 earlier drafts: Araku, Lambasingi, Vizag.)
 - **Cabs (2):** cab service in Vizag; tempo traveller and bus hire. (Plus the earlier Vizag to Araku cab draft.) Kakinada cab was left out: the partner's
   coverage of Kakinada is unknown.
-- **Stays (2):** Araku; Lambasingi. No property names, ratings or stock photos of named hotels.
-- **Guides (15):** Araku Valley, Lambasingi, Vanjangi, Maredumilli, Vizag things to do; Borra Caves, Katiki, Chaparai, Padmapuram, coffee museum and plantations,
+- **Stays (4):** Araku, Lambasingi, Vizag, Maredumilli. Each lists the partner's six properties with a "from" rate per room per night (see the price
+  decision below); no ratings or stock photos of named hotels.
+- **Guides (14):** Araku Valley, Lambasingi, Vanjangi, Maredumilli, Vizag things to do; Borra Caves, Katiki, Chaparai, Padmapuram, coffee museum and plantations,
   Tribal Museum, viewpoints, Kailasagiri, RK Beach.
 - **Blog (5):** what changes the quote; Araku in two days; best time; trip from Hyderabad; train or cab.
 - Tests (`test_site_seed.py`, 17): all drafts, idempotent, no overwrite, no price set, unique titles/descriptions/slugs, every page passes the publish checks,
@@ -74,5 +75,5 @@ never overwrites an existing page and is safe to run twice.
 
 ## Changelog
 - 2026-10-25  Full-site build pulled forward: dated prices, stay/article types, blog, listings, related pages, nav menus (Module 02 "Full site build"),
-  partner fact sheet, `seed_site_content` with 32 draft pages (see "Launch set").
+  partner fact sheet, `seed_site_content` with 34 draft pages (see "Launch set").
 - 2026-10-25  Created stub from the project setup.
