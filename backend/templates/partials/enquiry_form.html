@@ -45,7 +45,6 @@
   </div>
   {% for error in form.consent_given.errors %}<p class="field-error" id="consent-error" role="alert">{{ error }}</p>{% endfor %}
 
-  {% include "partials/referral_disclosure.html" %}
   <button type="submit" class="button button-submit">
     <span>Request free quotes</span>
     <span class="btn-arrow">&rarr;</span>

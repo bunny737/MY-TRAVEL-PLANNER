@@ -231,7 +231,7 @@ class ContentPageViewTests(TestCase):
         self.assertEqual(html.count('id="quote"'), 1)
         self.assertIn('<option value="tour" selected>', html)
         self.assertEqual(html.count('class="cta-row"'), 2)  # near the top and again after the content
-        self.assertIn('We are a travel enquiry and referral platform', html)
+        self.assertNotIn('We are a travel enquiry and referral platform', html)
         self.assertIn('Hi%2C%20I%20want%20a%20quote%20for%20Araku%20Tour%20Packages.', html)
         self.assertIn('data-track="whatsapp_click"', html)
 
