@@ -25,7 +25,7 @@
   {% endwith %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   {% if tracking.ga4_id or tracking.ads_id %}<script src="{% static 'js/tracking.js' %}" defer data-tracking data-ga4-id="{{ tracking.ga4_id }}" data-ads-id="{{ tracking.ads_id }}"></script>{% endif %}
   {% block extra_head %}{% endblock %}

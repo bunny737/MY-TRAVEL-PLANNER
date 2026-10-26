@@ -17,9 +17,15 @@
         </div>
         <div class="destination-card-actions">
           {% if entry.primary %}
-            <a class="button button-saffron" href="{{ entry.primary.get_absolute_url }}">View trips &amp; free quotes</a>
+            <a class="button button-saffron" href="{{ entry.primary.get_absolute_url }}">
+              <span>View trips &amp; free quotes</span>
+              <span class="btn-arrow" aria-hidden="true">&rarr;</span>
+            </a>
           {% else %}
-            <a class="button button-saffron" href="{% url 'core:enquiry' %}">Ask for a free quote</a>
+            <a class="button button-saffron" href="{% url 'core:enquiry' %}">
+              <span>Ask for a free quote</span>
+              <span class="btn-arrow" aria-hidden="true">&rarr;</span>
+            </a>
           {% endif %}
         </div>
       </li>

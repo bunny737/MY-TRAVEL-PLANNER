@@ -12,8 +12,21 @@
 {% block content %}
   {% include "partials/referral_disclosure.html" %}
 
+  <nav class="category-nav-bar" aria-label="Trip categories">
+    <span class="category-nav-title">Quick filter:</span>
+    <div class="category-pills">
+      {% for group in package_groups %}
+        {% if group.destination %}
+          <a class="category-pill" href="#group-{{ forloop.counter }}">{{ group.destination.name }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if cabs %}<a class="category-pill" href="#cabs">Cabs &amp; Transport</a>{% endif %}
+      {% if stays %}<a class="category-pill" href="#stays">Hotels &amp; Stays</a>{% endif %}
+    </div>
+  </nav>
+
   {% for group in package_groups %}
-    <section class="content-section listing-section" aria-labelledby="group-{{ forloop.counter }}">
+    <section class="content-section listing-section" id="group-{{ forloop.counter }}" aria-labelledby="group-{{ forloop.counter }}">
       <div class="section-header">
         <span class="eyebrow">Tour packages</span>
         <h2 id="group-{{ forloop.counter }}">{% if group.destination %}{{ group.destination.name }}{% else %}More trips{% endif %}</h2>

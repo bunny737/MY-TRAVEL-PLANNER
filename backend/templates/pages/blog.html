@@ -25,6 +25,12 @@
           <span class="post-meta">{% if post.destination %}{{ post.destination.name }} &middot; {% endif %}{{ post.published_at|date:"j M Y" }} &middot; {{ post.read_minutes }} min read</span>
           <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
           {% if post.intro %}<p>{{ post.intro|truncatewords:36 }}</p>{% endif %}
+          <div class="post-action-row">
+            <a class="post-read-link" href="{{ post.get_absolute_url }}">
+              <span>Read travel notes</span>
+              <span class="btn-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
         </li>
       {% endfor %}
     </ul>
