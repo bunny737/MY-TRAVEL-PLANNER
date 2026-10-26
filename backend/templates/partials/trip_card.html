@@ -7,6 +7,7 @@
   <div class="trip-card-top">
     <span class="trip-type">{% if trip.page_type == 'cab' %}Cab{% elif trip.page_type == 'stay' %}Stay{% else %}Tour package{% endif %}</span>
     <h3><a href="{{ trip.get_absolute_url }}">{{ trip.title }}</a></h3>
+    {% with places=trip.places %}{% if places|length > 1 %}<p class="trip-places">Covers {% for place in places %}{{ place.name }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}{% endwith %}
     {% if trip.intro %}<p class="trip-intro">{{ trip.intro|truncatewords:28 }}</p>{% endif %}
     {% include "partials/price_badge.html" with page=trip compact=True %}
   </div>

@@ -49,6 +49,7 @@ class Command(BaseCommand):
             )
             if created:
                 made += 1
+                page.also_visits.set([destinations[slug] for slug in item['also_visits']])
             else:
                 existing += 1
                 self.stdout.write(f'Page "{item["slug"]}" already exists; left unchanged.')

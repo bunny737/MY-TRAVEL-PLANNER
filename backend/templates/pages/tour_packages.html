@@ -10,23 +10,46 @@
 {% endblock %}
 
 {% block content %}
-  {% include "partials/referral_disclosure.html" %}
-
-  <nav class="category-nav-bar" aria-label="Trip categories">
-    <span class="category-nav-title">Quick filter:</span>
-    <div class="category-pills">
-      {% for group in package_groups %}
-        {% if group.destination %}
-          <a class="category-pill" href="#group-{{ forloop.counter }}">{{ group.destination.name }}</a>
-        {% endif %}
-      {% endfor %}
-      {% if cabs %}<a class="category-pill" href="#cabs">Cabs &amp; Transport</a>{% endif %}
-      {% if stays %}<a class="category-pill" href="#stays">Hotels &amp; Stays</a>{% endif %}
-    </div>
-  </nav>
+  <div class="listing-filters">
+    {% if type_tabs %}
+      <nav class="filter-row" aria-label="Filter by type">
+        <span class="filter-label" aria-hidden="true">Type</span>
+        <div class="filter-chips">{% for tab in type_tabs %}<a class="chip{% if tab.active %} active{% endif %}" href="{{ tab.href }}"{% if tab.active %} aria-current="true"{% endif %}>{{ tab.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    {% if destination_chips %}
+      <nav class="filter-row" aria-label="Filter by place">
+        <span class="filter-label" aria-hidden="true">Place</span>
+        <div class="filter-chips">{% for chip in destination_chips %}<a class="chip{% if chip.active %} active{% endif %}" href="{{ chip.href }}"{% if chip.active %} aria-current="true"{% endif %}>{{ chip.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    {% if show_duration_chips %}
+      <nav class="filter-row" aria-label="Filter by trip length">
+        <span class="filter-label" aria-hidden="true">Trip length</span>
+        <div class="filter-chips">{% for chip in duration_chips %}<a class="chip{% if chip.active %} active{% endif %}" href="{{ chip.href }}"{% if chip.active %} aria-current="true"{% endif %}>{{ chip.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    <form class="listing-sort" method="get" action="{% url 'core:tour_packages' %}">
+      {% if filters.type != 'all' %}<input type="hidden" name="type" value="{{ filters.type }}">{% endif %}
+      {% if filters.destination %}<input type="hidden" name="destination" value="{{ filters.destination }}">{% endif %}
+      {% if filters.days %}<input type="hidden" name="days" value="{{ filters.days }}">{% endif %}
+      <p class="listing-count" role="status">{{ result_count }} trip{{ result_count|pluralize }} shown</p>
+      <div class="listing-sort-controls">
+        <label for="listing-sort">Sort by</label>
+        <select id="listing-sort" name="sort">
+          {% for option in sort_options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+        </select>
+        <button class="button button-outline" type="submit">Apply</button>
+        {% if is_filtered or filters.sort != 'recommended' %}<a class="listing-clear" href="{{ clear_href }}">Clear filters</a>{% endif %}
+      </div>
+    </form>
+    {% if filters.sort == 'price' %}
+      <p class="muted listing-note">Only trips with a current dated partner quote are ranked by price; the rest follow. Prices are "from" amounts and your own quote depends on your dates and group size.</p>
+    {% endif %}
+  </div>
 
   {% for group in package_groups %}
-    <section class="content-section listing-section" id="group-{{ forloop.counter }}" aria-labelledby="group-{{ forloop.counter }}">
+    <section class="content-section listing-section" aria-labelledby="group-{{ forloop.counter }}">
       <div class="section-header">
         <span class="eyebrow">Tour packages</span>
         <h2 id="group-{{ forloop.counter }}">{% if group.destination %}{{ group.destination.name }}{% else %}More trips{% endif %}</h2>
@@ -34,6 +57,13 @@
       <ul class="trip-cards">{% for trip in group.pages %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
     </section>
   {% endfor %}
+
+  {% if packages %}
+    <section class="content-section listing-section" aria-labelledby="packages-heading">
+      <div class="section-header"><span class="eyebrow">Tour packages</span><h2 id="packages-heading">Tour packages</h2></div>
+      <ul class="trip-cards">{% for trip in packages %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
 
   {% if cabs %}
     <section id="cabs" class="content-section listing-section" aria-labelledby="cabs-heading">
@@ -49,16 +79,19 @@
     </section>
   {% endif %}
 
-  {% if not package_groups and not cabs and not stays %}
-    <p class="muted">Our trip pages are being prepared. You can still <a href="{% url 'core:enquiry' %}">ask for a free quote</a> and tell us where you want to go.</p>
+  {% if not has_results %}
+    <p class="muted listing-empty">
+      {% if is_filtered %}No trips match these filters. <a href="{{ clear_href }}">Clear the filters</a> or tell us what you have in mind below.
+      {% else %}Our trip pages are being prepared. You can still <a href="{% url 'core:enquiry' %}">ask for a free quote</a> and tell us where you want to go.{% endif %}
+    </p>
   {% endif %}
 {% endblock %}
 
 {% block after_content %}
   <section class="band band-forest cta-band">
     <div class="container cta-band-inner">
-      <h2>Not sure which trip suits you?</h2>
-      <p>Tell us your dates and group size and an independent local partner will suggest and quote. Asking is free.</p>
+      <h2>Can't find the trip you want?</h2>
+      <p>Tell us your dates, group size and the places you want to see, and an independent local partner will suggest a plan and quote. Asking is free.</p>
       {% url 'core:enquiry' as enquiry_url %}
       {% include "partials/cta_block.html" with quote_href=enquiry_url %}
     </div>

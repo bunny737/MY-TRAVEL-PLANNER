@@ -118,8 +118,8 @@ class ContentPageAdmin(admin.ModelAdmin):
     readonly_fields = ('published_at', 'updated_at')
     actions = [publish_pages, unpublish_pages]
     fieldsets = (
-        (None, {'fields': ('page_type', 'title', 'slug', 'destination', 'status', 'sort_order', 'hero_image')}),
-        ('Content', {'fields': ('intro', 'duration', 'body', 'itinerary', 'inclusions', 'exclusions', 'faq')}),
+        (None, {'fields': ('page_type', 'title', 'slug', 'destination', 'also_visits', 'status', 'sort_order', 'hero_image')}),
+        ('Content', {'fields': ('intro', 'duration', ('days_min', 'days_max'), 'body', 'itinerary', 'inclusions', 'exclusions', 'faq')}),
         ('Price (from a dated partner quote)', {
             'fields': ('price_from', 'price_unit', 'price_basis', 'price_quoted_on', 'price_partner', 'price_options'),
             'description': (

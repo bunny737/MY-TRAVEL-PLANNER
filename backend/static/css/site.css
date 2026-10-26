@@ -4151,3 +4151,123 @@ a.button.button-saffron:hover {
   }
 }
 
+
+/* /tour-packages/ filters: one panel with a labelled row per filter (plain links, no JavaScript). */
+.listing-filters {
+  margin: 0 0 36px;
+  padding: 8px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.listing-filters .filter-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.filter-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.listing-filters .chip {
+  padding: 6px 14px;
+  border-color: var(--border);
+  background: var(--bg-card-alt);
+  font-size: 0.93rem;
+  line-height: 1.4;
+}
+
+.listing-filters .chip:hover {
+  background: var(--bg-card);
+}
+
+.listing-filters .chip.active {
+  background: var(--primary);
+}
+
+.listing-sort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 0;
+}
+
+.listing-count {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.listing-sort-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.listing-sort label {
+  font-weight: 600;
+  color: var(--text-sec);
+}
+
+.listing-sort select {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: inherit;
+  font: inherit;
+}
+
+.listing-sort .button {
+  min-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.listing-clear {
+  font-weight: 600;
+}
+
+.listing-note,
+.listing-empty {
+  margin: 0 0 14px;
+}
+
+@media (max-width: 640px) {
+  .listing-filters {
+    padding: 4px 16px;
+  }
+
+  .listing-filters .filter-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px 0;
+  }
+}
+
+.trip-places {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}

@@ -15,7 +15,7 @@ Serve the homepage and the commercial landing page (`/araku-tour-packages/`) fro
 SEO basics. Later pages (cab, 2D/1N, itinerary, Lambasingi, guides) are just more `ContentPage` rows — no new code per page.
 **Prices:** a page states a price only from its dated partner-quote fields (owner decision 2026-10-25, revised); otherwise it invites a free quote.
 
-## Data model (as-built) — migrations core.0003, core.0004 (adds `hero_image`)
+## Data model (as-built) — migrations core.0003, core.0004 (adds `hero_image`), core.0008 (`days_min`, `days_max`), core.0009 (`also_visits`)
 ```
 Table: core_destination
   id, name, slug (unique), summary, is_active, sort_order
@@ -29,6 +29,8 @@ Table: core_contentpage
                                  terms, enquiry, thank-you, sitemap, robots, home
   sort_order                     lower = listed first on the homepage
   intro, duration, body          plain text; body = paragraphs separated by a blank line
+  days_min, days_max             package pages only: trip length in days for the listing filter (both or neither)
+  also_visits                    other Destinations the trip covers (many-to-many); `destination` stays the main place
   itinerary, faq                 text blocks separated by a blank line: first line = heading/question, rest = text
   inclusions, exclusions         one item per line
   hero_image (40)                key of a photo in apps/core/images.py; blank = default photo for the page type
@@ -86,6 +88,10 @@ analysis of that site is in the chat history, the fact sheet will be `docs/resea
   (registry photos only, refused on save if the key is unknown, caption carries the credit). Still escaped plain text.
 - **Listings:** `/tour-packages/` (packages by destination, `#cabs`, `#stays`) and `/blog/` (newest first; `?destination=` chips; canonical stays `/blog/`;
   filtered URLs are not in the sitemap). Both in the sitemap; `tour-packages` and `blog` are reserved slugs.
+- **Listing filters (`/tour-packages/`, 2026-10-26, modelled on araku-valley.com/packages):** type tabs (only types that have published pages), place
+  chips (`?destination=<slug>`), trip-length chips (`?days=1|2|3|4`) and a sort (`?sort=shortest|price`). All are plain GET links plus one
+  small form, no JavaScript. Unknown values fall back to the default. The canonical stays `/tour-packages/` and filtered URLs are not in the sitemap.
+  An empty result explains itself and shows the "Can't find the trip you want?" enquiry band, which also closes the page.
 - **Navigation:** Tour packages ▾, Destinations ▾, Cabs & stays ▾ (published pages only, hidden when empty, no JS), Blog. Footer links to both listings.
 - **Related pages** on every content page: same destination, published, commercial first, max 6.
 - **Homepage** shows the first 6 package/cab/stay pages with a link to `/tour-packages/`.
@@ -209,6 +215,22 @@ The same command also creates the Lambasingi and Vizag package drafts and, since
 - [DECISION 2026-10-25] Distances and temperatures were left out of the new drafts (no source); a test rejects "<n> km" and degrees on them.
 - [OPEN] Review and publish the Lambasingi and Vizag drafts after checking the stops with operators.
 - [OPEN] Guides are linked from their destination's card on `/destinations/` once published; add in-page links from related pages (Module 10).
+- [DECISION 2026-10-26] Trip length for the listing filter is structured: `days_min` / `days_max` on ContentPage (core.0008), package pages only, both
+  or neither, `1 <= min <= max`. The free-text `duration` is still what cards show. Migration 0008 fills the nine launch packages by slug, only where both
+  fields are empty, so a value edited in admin is never overwritten; `seed_site_content` sets them for new databases.
+- [DECISION 2026-10-26] A trip-length chip matches by range overlap, so a "1 to 5 days" package appears under every length it can cover. Choosing a length
+  shows packages only (cabs and stays have no day count). A package with no days set is left out when a length is chosen.
+- [DECISION 2026-10-26] "Lowest from price first" ranks only trips whose dated price is current (`price_is_current`); expired or missing prices go last
+  and are never shown. The "from" amounts are compared as shown and are not converted between units (per couple, per person, per vehicle), so the page
+  says the ranking uses current dated partner quotes and that the visitor's own quote will differ. Revisit if this misleads once more priced pages exist.
+- [DECISION 2026-10-26] Reference page copy ("Best Deals", "Book the best ... packages") was not carried over (invariant 3). A tab for a type with no
+  published pages is not shown, so the unpublished cab drafts do not produce an empty "Cabs" tab.
+- [DECISION 2026-10-26] A trip can cover several places: `ContentPage.also_visits` (many-to-many to Destination, core.0009, no new model). The
+  `destination` FK stays the main place (grouping, breadcrumbs, the Destinations menu). `ContentPage.places` is the main place plus the extras, without
+  duplicates. The place chips on `/tour-packages/` list every place any published trip covers and match on all of them, so a Vizag + Araku trip shows under
+  both. Cards for multi-place trips say "Covers Araku Valley · Vizag · Lambasingi". The migration fills the three launch combo packages (3-day Vizag + Araku,
+  Araku + Lambasingi, 4 to 5 day Vizag + Araku + Lambasingi) only where no extras are set; `seed_site_content` sets them for new databases.
+  `/destinations/` and the destination menus still use the main place only.
 
 ## Changelog
 - 2026-10-25  Created stub from the project setup.
@@ -222,3 +244,7 @@ The same command also creates the Lambasingi and Vizag package drafts and, since
 - 2026-10-25  Visual design overhaul and header navbar implementation: full responsive navigation menu, brand emblem, modern typography, timeline itinerary styling, inclusions/exclusions comparison grid, FAQ cards, and refined form layout; all 183 tests pass.
 - 2026-10-25  Destinations: Destination.hero_image (core.0005), Destinations menu + footer, `/destinations/` hub, homepage destination
   band, per-destination photo strips, 4 Lambasingi/Vizag photos, Lambasingi and Vizag draft pages in the seed; 295 tests pass; ERD regenerated.
+- 2026-10-26  `/tour-packages/` filters and sort (type, place, trip length, recommended / shortest / price) and the "plan a custom trip" band;
+  `days_min` / `days_max` (core.0008, with backfill); `test_listing_filters.py` (23 tests); 442 tests pass; ERD regenerated.
+- 2026-10-26  Multi-place trips: `ContentPage.also_visits` (core.0009, with backfill), place filter matches every covered place, "Covers ..." line on
+  cards, filter panel restyle, referral paragraph removed from `/tour-packages/`; 451 tests pass; ERD regenerated.

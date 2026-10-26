@@ -1,4 +1,4 @@
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from django.conf import settings
 from django.http import Http404, HttpResponse
@@ -32,7 +32,7 @@ RELATED_LIMIT = 6
 
 
 def _published_pages():
-    return ContentPage.objects.published().select_related('destination', 'price_partner')
+    return ContentPage.objects.published().select_related('destination', 'price_partner').prefetch_related('also_visits')
 
 
 def _related_pages(page):
@@ -94,15 +94,126 @@ def content_page(request, slug):
     })
 
 
+TYPE_TABS = (
+    ('all', 'All'),
+    (ContentPage.PageType.PACKAGE.value, 'Tour packages'),
+    (ContentPage.PageType.CAB.value, 'Cabs'),
+    (ContentPage.PageType.STAY.value, 'Stays'),
+)
+# (query value, chip label, shortest day, longest day or None for "no upper limit")
+DURATION_BUCKETS = (
+    ('1', 'Day trip', 1, 1),
+    ('2', '2 days / 1 night', 2, 2),
+    ('3', '3 days / 2 nights', 3, 3),
+    ('4', '4 days or more', 4, None),
+)
+SORT_OPTIONS = (
+    ('recommended', 'Recommended'),
+    ('shortest', 'Shortest trip first'),
+    ('price', 'Lowest "from" price first'),
+)
+LISTING_DEFAULTS = {'type': 'all', 'destination': '', 'days': '', 'sort': 'recommended'}
+
+
+def _listing_filters(params, page_types, destination_slugs):
+    """The listing's filters from ?type=&destination=&days=&sort=. Anything unrecognised falls back to its default."""
+    filters = dict(LISTING_DEFAULTS)
+    if params.get('type') in page_types:
+        filters['type'] = params['type']
+    if params.get('destination') in destination_slugs:
+        filters['destination'] = params['destination']
+    if params.get('days') in {value for value, *_ in DURATION_BUCKETS}:
+        filters['days'] = params['days']
+    if params.get('sort') in dict(SORT_OPTIONS):
+        filters['sort'] = params['sort']
+    return filters
+
+
+def _listing_href(filters, **changes):
+    """/tour-packages/ plus only the non-default filters, so the unfiltered page keeps its plain address."""
+    merged = {**filters, **changes}
+    query = {key: value for key, value in merged.items() if value != LISTING_DEFAULTS[key]}
+    base = reverse('core:tour_packages')
+    return f'{base}?{urlencode(query)}' if query else base
+
+
+def _in_day_range(page, shortest, longest):
+    """A package matches when its day range overlaps the bucket's, so a "1 to 5 days" trip fits every length it covers."""
+    if page.days_min is None or page.days_max is None:
+        return False
+    return page.days_min <= (longest if longest is not None else page.days_max) and page.days_max >= shortest
+
+
+def _sorted_pages(pages, sort):
+    """`recommended` keeps the admin order. `price` uses current dated prices only; the rest, and unpriced trips, go last."""
+    pages = sorted(pages, key=lambda p: (p.sort_order, p.title))
+    if sort == 'shortest':
+        return sorted(pages, key=lambda p: (p.days_min is None, p.days_min or 0))
+    if sort == 'price':
+        return sorted(pages, key=lambda p: (not p.price_is_current, p.price_from if p.price_is_current else 0))
+    return pages
+
+
 @require_GET
 def tour_packages(request):
-    """Every published package, cab and stay page, grouped by destination."""
+    """Every published package, cab and stay page, with type, destination and trip-length filters and a sort.
+
+    Filters are plain GET links (no JavaScript). The canonical stays /tour-packages/, so filtered URLs add no duplicates.
+    """
     pages = list(_published_pages().filter(page_type__in=COMMERCIAL_TYPES))
-    by_type = lambda page_type: [p for p in pages if p.page_type == page_type]  # noqa: E731
+    destinations = sorted({d for p in pages for d in p.places}, key=lambda d: (d.sort_order, d.name))
+    # A tab for a type with no published pages would lead nowhere, so only types that exist are offered.
+    tabs = [(value, label) for value, label in TYPE_TABS if value == 'all' or any(p.page_type == value for p in pages)]
+    filters = _listing_filters(request.GET, {value for value, _ in tabs}, {d.slug for d in destinations})
+
+    if filters['destination']:
+        pages = [p for p in pages if any(d.slug == filters['destination'] for d in p.places)]
+    show_type = filters['type']
+    bucket = next((b for b in DURATION_BUCKETS if b[0] == filters['days']), None)
+    if bucket:
+        # Only packages carry a length in days, so choosing one leaves cabs and stays out.
+        show_type = ContentPage.PageType.PACKAGE.value
+
+    def of_type(page_type):
+        if show_type not in ('all', page_type):
+            return []
+        chosen = [p for p in pages if p.page_type == page_type]
+        if bucket and page_type == ContentPage.PageType.PACKAGE:
+            chosen = [p for p in chosen if _in_day_range(p, bucket[2], bucket[3])]
+        return _sorted_pages(chosen, filters['sort'])
+
+    packages = of_type(ContentPage.PageType.PACKAGE)
+    cabs = of_type(ContentPage.PageType.CAB)
+    stays = of_type(ContentPage.PageType.STAY)
+    recommended = filters['sort'] == 'recommended'
+    is_filtered = any(filters[key] != LISTING_DEFAULTS[key] for key in ('type', 'destination', 'days'))
     return render(request, 'pages/tour_packages.html', {
-        'package_groups': _group_by_destination(by_type(ContentPage.PageType.PACKAGE)),
-        'cabs': by_type(ContentPage.PageType.CAB),
-        'stays': by_type(ContentPage.PageType.STAY),
+        # Recommended order groups packages by destination; any other sort shows one flat, visibly ordered list.
+        'package_groups': _group_by_destination(packages) if recommended else [],
+        'packages': [] if recommended else packages,
+        'cabs': cabs,
+        'stays': stays,
+        'has_results': bool(packages or cabs or stays),
+        'result_count': len(packages) + len(cabs) + len(stays),
+        'filters': filters,
+        'is_filtered': is_filtered,
+        'type_tabs': [
+            {'label': label, 'href': _listing_href(filters, type=value, days=''), 'active': show_type == value}
+            for value, label in tabs
+        ] if len(tabs) > 2 else [],
+        'destination_chips': [
+            {'label': 'All places', 'href': _listing_href(filters, destination=''), 'active': not filters['destination']},
+            *[{'label': d.name, 'href': _listing_href(filters, destination=d.slug), 'active': filters['destination'] == d.slug}
+              for d in destinations],
+        ] if len(destinations) > 1 else [],
+        'duration_chips': [
+            {'label': 'Any length', 'href': _listing_href(filters, days=''), 'active': not bucket},
+            *[{'label': label, 'href': _listing_href(filters, days=value), 'active': filters['days'] == value}
+              for value, label, *_ in DURATION_BUCKETS],
+        ],
+        'show_duration_chips': filters['type'] in ('all', ContentPage.PageType.PACKAGE.value),
+        'sort_options': [{'value': value, 'label': label, 'selected': filters['sort'] == value} for value, label in SORT_OPTIONS],
+        'clear_href': reverse('core:tour_packages'),
         'og_image_key': 'rainbow-hills',
     })
 

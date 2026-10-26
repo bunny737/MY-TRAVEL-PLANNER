@@ -58,12 +58,13 @@ def notes(*extra, figures=False):
 
 
 def page(slug, destination, page_type, title, meta_title, meta_description, intro, hero_image, sort_order=100,
-         duration='', body='', itinerary='', inclusions='', exclusions='', faq_text='', internal_notes=''):
+         duration='', days=None, also_visits=(), body='', itinerary='', inclusions='', exclusions='', faq_text='', internal_notes=''):
     return {
-        'slug': slug, 'destination': destination,
+        'slug': slug, 'destination': destination, 'also_visits': tuple(also_visits),
         'fields': {
             'page_type': page_type, 'title': title, 'meta_title': meta_title, 'meta_description': meta_description,
             'intro': text(intro), 'hero_image': hero_image, 'sort_order': sort_order, 'duration': duration,
+            'days_min': days[0] if days else None, 'days_max': days[1] if days else None,
             'body': text(body) if body else '', 'itinerary': text(itinerary) if itinerary else '',
             'inclusions': text(inclusions) if inclusions else '', 'exclusions': text(exclusions) if exclusions else '',
             'faq': faq_text, 'internal_notes': internal_notes,
