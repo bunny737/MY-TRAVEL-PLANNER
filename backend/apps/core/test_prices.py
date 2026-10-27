@@ -169,7 +169,7 @@ class PriceDisplayTests(TestCase):
         self.assertIn('per couple', html)
         self.assertIn('AC sedan, 2 travellers, weekday', html)
         self.assertIn(quoted(3).strftime('%-d %b %Y'), html)
-        self.assertIn("local partner's quote dated", html)
+        self.assertIn('Quote dated ' + quoted(3).strftime('%-d %b %Y'), html)
         self.assertEqual(page.display_price['amount'], '₹6,000')
 
     def test_every_rupee_amount_sits_inside_a_dated_price_block(self):
@@ -178,7 +178,7 @@ class PriceDisplayTests(TestCase):
         self.assertGreaterEqual(len(PRICE_BLOCK.findall(html)), 2)  # fact strip and the quote box
         self.assertNotIn('₹', outside_price_blocks(html))
         for block in PRICE_BLOCK.findall(html):
-            self.assertRegex(block, r'quote dated \d{1,2} \w{3} \d{4}|\d{1,2} \w{3} \d{4}</span>')
+            self.assertRegex(block, r'(?i:quote dated) \d{1,2} \w{3} \d{4}|\d{1,2} \w{3} \d{4}</span>')
 
     def test_the_rest_of_a_priced_page_has_no_price_words_or_overclaims(self):
         priced_page(slug='trip', title='Trip')

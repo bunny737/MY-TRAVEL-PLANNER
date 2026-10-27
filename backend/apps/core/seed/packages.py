@@ -15,7 +15,7 @@ PACKAGES = [
             Tell us your date and how many of you are travelling. An independent local partner sends you a quote
             for a one-day trip from Visakhapatnam to Araku Valley. Asking is free, and you book only if the quote suits you.
         ''',
-        hero_image='valley-road', sort_order=10, duration='1 day',
+        hero_image='valley-road', sort_order=10, duration='1 day', days=(1, 1),
         body='''
             Araku Valley is roughly 115 km from Visakhapatnam, and the ghat road up takes about 3.5 to 4.5 hours each way
             with stops. That makes a day trip a long day: an early start, a late return and a few well-chosen stops rather than every sight.
@@ -61,7 +61,7 @@ PACKAGES = [
             Tell us your dates and who is travelling. An independent local partner sends you a quote for two days and one night in
             Araku Valley, starting from Visakhapatnam. Asking is free, and there is no obligation to book.
         ''',
-        hero_image='misty-pines', sort_order=20, duration='2 days / 1 night',
+        hero_image='misty-pines', sort_order=20, duration='2 days / 1 night', days=(2, 2),
         body='''
             A night in Araku lets you see the sights on the way up on day one and spend the next morning in the valley without
             hurrying back down the ghat road. It suits couples, families and small groups.
@@ -99,7 +99,7 @@ PACKAGES = [
             Tell us your dates and group size. An independent local partner sends you a quote for three days and two nights:
             a day in Visakhapatnam, then Araku Valley. Asking is free, and you book only if the quote suits you.
         ''',
-        hero_image='kailasagiri-coast', sort_order=30, duration='3 days / 2 nights',
+        hero_image='kailasagiri-coast', sort_order=30, duration='3 days / 2 nights', days=(3, 3), also_visits=('vizag',),
         body='''
             This plan starts on the coast and finishes in the hills. It works well if you arrive by train or flight in
             Visakhapatnam and want a day for the beaches and city sights before the drive up.
@@ -138,7 +138,7 @@ PACKAGES = [
             Tell us your dates and group size. An independent local partner sends you a quote for Araku Valley and Lambasingi
             together, as a 2 day 1 night or a 3 day 2 night trip from Visakhapatnam. Asking is free.
         ''',
-        hero_image='lambasingi-clouds', sort_order=40, duration='2 days / 1 night, or 3 days / 2 nights',
+        hero_image='lambasingi-clouds', sort_order=40, duration='2 days / 1 night, or 3 days / 2 nights', days=(2, 3), also_visits=('araku-valley',),
         body='''
             Araku has the coffee plantations, caves and falls; Lambasingi is a quieter hill village known for misty
             mornings in the cooler months, a reservoir and seasonal strawberry patches. Doing both gives you sunrise in the hills.
@@ -183,7 +183,7 @@ PACKAGES = [
             Tell us your dates and group size. An independent local partner sends you a quote for a Vanjangi sunrise trip, usually
             combined with Araku Valley and Lambasingi. Asking is free, and you book only if the quote suits you.
         ''',
-        hero_image='vanjangi-hills', sort_order=50, duration='2 to 5 days',
+        hero_image='vanjangi-hills', sort_order=50, duration='2 to 5 days', days=(2, 5),
         body='''
             Vanjangi is a hilltop viewpoint known for sunrise, when clouds can fill the valley below. It is early, cold and
             weather-dependent, so plan a night nearby and keep some slack in your schedule.
@@ -224,7 +224,7 @@ PACKAGES = [
             Tell us your dates, group size and where you will start. An independent local partner sends you a quote for a trip to
             Maredumilli, usually from Rajahmundry. Asking is free, and you book only if the quote suits you.
         ''',
-        hero_image='maredumilli-falls', sort_order=60, duration='2 days / 1 night',
+        hero_image='maredumilli-falls', sort_order=60, duration='2 days / 1 night', days=(2, 2),
         body='''
             Maredumilli is a forest area in the Papikonda range, known for its waterfalls, bamboo and teak trails and a quiet
             stay in the trees. It is usually done as a two-day trip from Rajahmundry, and it can also be reached from Visakhapatnam,
@@ -263,7 +263,7 @@ PACKAGES = [
             Tell us your dates and group size. An independent local partner sends you a quote for a longer trip that takes in
             Visakhapatnam, Araku Valley and Lambasingi. Asking is free, and you book only if the quote suits you.
         ''',
-        hero_image='rushikonda-beach', sort_order=70, duration='4 to 5 days',
+        hero_image='rushikonda-beach', sort_order=70, duration='4 to 5 days', days=(4, 5), also_visits=('vizag', 'lambasingi'),
         body='''
             A longer trip gives each place its own time: a day on the coast, a night in Araku and a night in Lambasingi, with
             room for a slower morning. It suits families and anyone who does not want to rush the hill roads.
@@ -305,7 +305,7 @@ PACKAGES = [
             Tell us your dates and what would make the trip special. An independent local partner sends you a quote for a couple
             or honeymoon trip to Araku Valley and, if you like, Lambasingi. Asking is free.
         ''',
-        hero_image='terraced-hills', sort_order=80, duration='1 to 5 days',
+        hero_image='terraced-hills', sort_order=80, duration='1 to 5 days', days=(1, 5),
         body='''
             Couples usually pick the same routes as everyone else, with a private car and a stay chosen for quiet and views.
             Extras such as a candle-light dinner, a photographer or a room upgrade are not automatic: ask for them in your enquiry
@@ -342,7 +342,7 @@ PACKAGES = [
             Tell us your dates, group size and where you start. An independent local partner sends you a quote for a group trip
             to Araku Valley and Lambasingi by tempo traveller or bus. Asking is free.
         ''',
-        hero_image='plantation', sort_order=90, duration='1 to 5 days',
+        hero_image='plantation', sort_order=90, duration='1 to 5 days', days=(1, 5),
         body='''
             Groups of eight or more usually travel by tempo traveller, and larger groups may need a bus. Seat counts differ
             between operators, so give your exact numbers early.

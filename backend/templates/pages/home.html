@@ -167,8 +167,8 @@
         <h2 id="closing-heading">Have a question first?</h2>
         <p>Message us about dates, routes or group size before you send an enquiry.{% if site.response_hours %} Reply hours: {{ site.response_hours }}.{% endif %}</p>
         <div class="cta-row cta-row-center">
-          {% whatsapp_cta %}
-          {% call_cta label="Call us" css_class="button button-outline" %}
+          {% whatsapp_cta where="home_contact" %}
+          {% call_cta label="Call us" css_class="button button-outline" where="home_contact" %}
         </div>
       </div>
     </section>

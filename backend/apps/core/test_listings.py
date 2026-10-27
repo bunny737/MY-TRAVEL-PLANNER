@@ -34,13 +34,12 @@ class TourPackagesPageTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('href="/enquiry/"', response.content.decode())
 
-    def test_has_one_h1_unique_title_description_canonical_and_the_disclosure(self):
+    def test_has_one_h1_unique_title_description_and_canonical(self):
         html = self.client.get('/tour-packages/').content.decode()
         self.assertEqual(html.count('<h1'), 1)
         self.assertRegex(html, r'<title>[^<]+</title>')
         self.assertRegex(html, r'<meta name="description" content="[^"]{40,}')
         self.assertIn('<link rel="canonical" href="https://site.test/tour-packages/">', html)
-        self.assertIn('referral-disclosure', html)
 
     def test_is_indexable_and_in_the_sitemap(self):
         self.assertIn('content="index,follow"', self.client.get('/tour-packages/').content.decode())

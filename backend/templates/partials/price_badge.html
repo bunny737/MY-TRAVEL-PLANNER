@@ -4,6 +4,6 @@
 <p class="price-badge{% if compact %} price-badge-compact{% endif %}">
   <span class="price-from">From <strong>{{ price.amount }}</strong> {{ price.unit }}</span>
   {% if not compact and price.basis %}<span class="price-basis">{{ price.basis }}</span>{% endif %}
-  <span class="price-note">Based on a local partner's quote dated {{ price.quoted_on|date:"j M Y" }}.{% if not compact %} Your own quote depends on your dates, vehicle and group size.{% endif %}</span>
+  <span class="price-note">Quote dated {{ price.quoted_on|date:"j M Y" }}.{% if not compact %} Your own quote depends on your dates, vehicle and group size.{% endif %}</span>
 </p>
 <!--/price-->{% endif %}{% endwith %}

@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
-  {% if tracking.ga4_id or tracking.ads_id %}<script src="{% static 'js/tracking.js' %}" defer data-tracking data-ga4-id="{{ tracking.ga4_id }}" data-ads-id="{{ tracking.ads_id }}"></script>{% endif %}
+  {% if tracking.ga4_id or tracking.ads_id %}<script src="{% static 'js/tracking.js' %}" defer data-tracking data-ga4-id="{{ tracking.ga4_id }}" data-ads-id="{{ tracking.ads_id }}" data-page-type="{% if page %}{{ page.page_type }}{% else %}{{ request.resolver_match.url_name }}{% endif %}"></script>{% endif %}
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -62,12 +62,6 @@
               <li><a href="{% url 'core:contact' %}" class="nav-link{% if request.path == '/contact/' %} active{% endif %}">Contact</a></li>
             </ul>
             <div class="nav-actions">
-              {% if site.contact_phone %}
-                {% call_cta label=site.contact_phone css_class="nav-phone" %}
-              {% endif %}
-              {% if site.whatsapp_number %}
-                {% whatsapp_cta label="WhatsApp" css_class="button button-whatsapp button-nav-whatsapp" %}
-              {% endif %}
               <a class="button button-saffron button-nav-quote" href="{% url 'core:enquiry' %}">Get Free Quotes</a>
             </div>
           </div>
@@ -118,8 +112,8 @@
           <div class="footer-col">
             <h4 class="footer-heading">Get in touch</h4>
             <ul class="footer-link-list footer-contact">
-              {% if site.whatsapp_number %}<li>{% whatsapp_cta label="WhatsApp us" css_class="footer-contact-link" %}</li>{% endif %}
-              {% if site.contact_phone %}<li>{% call_cta label=site.contact_phone css_class="footer-contact-link" %}</li>{% endif %}
+              {% if site.whatsapp_number %}<li>{% whatsapp_cta label="WhatsApp us" css_class="footer-contact-link" where="footer" %}</li>{% endif %}
+              {% if site.contact_phone %}<li>{% call_cta label=site.contact_phone css_class="footer-contact-link" where="footer" %}</li>{% endif %}
               {% if site.contact_email %}<li><a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a></li>{% endif %}
               <li><a href="{% url 'core:contact' %}">Contact page</a></li>
             </ul>
@@ -135,6 +129,7 @@
       {% endblock %}
     </div>
   </footer>
+  {% include "partials/float_cta.html" %}
   {% block sticky_cta %}{% include "partials/sticky_cta.html" %}{% endblock %}
   {% block extra_body %}{% endblock %}
 </body>

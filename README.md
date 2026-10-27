@@ -16,7 +16,7 @@ We are **not** a tour operator, a payment aggregator or an online travel agency.
 | URL | What |
 |---|---|
 | `/` | Homepage: hero, destinations, the first six trips with their prices, explore tiles, how it works, enquiry form |
-| `/tour-packages/` | Every published package grouped by destination, then **cabs** (`#cabs`) and **stays** (`#stays`), each card with its "from" price |
+| `/tour-packages/` | Every published package grouped by destination, then **cabs** (`#cabs`) and **stays** (`#stays`), each card with its "from" price. Filter by type, place and trip length, and sort (`?type=`, `?destination=`, `?days=`, `?sort=`); the canonical stays `/tour-packages/` |
 | `/<slug>/` | Any published package, cab, stay, guide or blog article (one page type per row in the admin) |
 | `/blog/` | Articles, newest first, with destination filter chips (`?destination=araku-valley`) |
 | `/destinations/` | Araku Valley, Lambasingi, Vizag, Vanjangi and Maredumilli as cards |

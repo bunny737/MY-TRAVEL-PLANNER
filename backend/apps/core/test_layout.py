@@ -79,7 +79,7 @@ class PageStructureTests(TestCase):
         self.assertNotIn('To request a quote', html)
 
     @override_settings(WHATSAPP_NUMBER='919000000000', CONTACT_PHONE='+919000000001', CONTACT_EMAIL='hi@example.com')
-    def test_footer_contact_column_and_header_phone(self):
+    def test_footer_contact_column_and_floating_buttons_not_in_header(self):
         html = self.client.get(reverse('core:privacy')).content.decode()
         footer = html[html.index('<footer'):]
         self.assertIn('Get in touch', footer)
@@ -88,7 +88,12 @@ class PageStructureTests(TestCase):
         self.assertIn('data-track="call_click"', footer)
         self.assertIn('data-track="whatsapp_click"', footer)
         header = html[html.index('<header class="site-header">'):html.index('</header>')]
-        self.assertIn('class="nav-phone"', header)
+        self.assertNotIn('wa.me', header)
+        self.assertNotIn('tel:', header)
+        float_cta = html[html.index('class="float-cta"'):]
+        self.assertIn('wa.me/919000000000', float_cta)
+        self.assertIn('href="tel:+919000000001"', float_cta)
+        self.assertIn('href="mailto:hi@example.com"', float_cta)
 
     def test_404_uses_the_page_header(self):
         response = self.client.get('/no-such-page/')

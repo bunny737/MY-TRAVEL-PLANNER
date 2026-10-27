@@ -282,6 +282,11 @@ class ContentPage(models.Model):
         PUBLISHED = 'published', 'Published'
 
     destination = models.ForeignKey(Destination, null=True, blank=True, on_delete=models.SET_NULL, related_name='pages')
+    also_visits = models.ManyToManyField(
+        Destination, blank=True, related_name='stopover_pages',
+        help_text='Other places this trip covers. The main destination above counts too, so leave it out here. '
+                  'The place filter on /tour-packages/ matches every place listed.',
+    )
     page_type = models.CharField(max_length=10, choices=PageType.choices)
     title = models.CharField(max_length=150, help_text='Shown as the page heading. Match what people search for.')
     slug = models.SlugField(
@@ -290,6 +295,12 @@ class ContentPage(models.Model):
     sort_order = models.PositiveSmallIntegerField(default=100, help_text='Lower numbers are listed first on the homepage.')
     intro = models.TextField(blank=True, help_text='Opening paragraph. Say plainly that independent partners send the quotes.')
     duration = models.CharField(max_length=80, blank=True, help_text='e.g. "Day trip, or 2 days / 1 night".')
+    days_min = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Package pages only. Shortest trip length in days; the listing filter uses it.',
+    )
+    days_max = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Package pages only. Longest trip length in days (same as the shortest if it is fixed).',
+    )
     body = models.TextField(blank=True, help_text='Paragraphs separated by a blank line. Plain text only.')
     itinerary = models.TextField(
         blank=True,
@@ -399,6 +410,12 @@ class ContentPage(models.Model):
         return max(1, round(len((self.body or '').split()) / 200))
 
     @property
+    def places(self):
+        """Every destination this page covers: the main one first, then the others. Prefetch `also_visits` in listings."""
+        main = [self.destination] if self.destination_id else []
+        return main + [d for d in self.also_visits.all() if d.pk != self.destination_id]
+
+    @property
     def uses_article_body(self):
         return self.page_type in (self.PageType.GUIDE, self.PageType.ARTICLE)
 
@@ -478,6 +495,7 @@ class ContentPage(models.Model):
             errors['hero_image'] = 'Choose a photo from the list.'
 
         errors.update(self._price_errors())
+        errors.update(self._days_errors())
         if self.uses_article_body:
             unknown = [s.text for s in self.article_segments if s.kind == 'photo' and not images.exists(s.text)]
             if unknown:
@@ -499,6 +517,19 @@ class ContentPage(models.Model):
                 errors['intro'] = 'An introduction is required before publishing.'
         if errors:
             raise ValidationError(errors)
+
+    def _days_errors(self):
+        if self.days_min is None and self.days_max is None:
+            return {}
+        if self.page_type != self.PageType.PACKAGE:
+            return {'days_min': 'Only tour package pages have a trip length in days. Clear both fields.'}
+        if self.days_min is None or self.days_max is None:
+            return {'days_min': 'Fill in both the shortest and the longest trip length, or clear both.'}
+        if self.days_min < 1:
+            return {'days_min': 'A trip is at least 1 day.'}
+        if self.days_min > self.days_max:
+            return {'days_max': 'The longest trip length cannot be less than the shortest.'}
+        return {}
 
     def _price_errors(self):
         parts = [self.price_from is not None, bool(self.price_unit), bool(self.price_basis), self.price_quoted_on is not None,
