@@ -275,6 +275,28 @@ class CtaTests(TestCase):
         self.assertIn('data-track="call_click" data-ads-send-to="AW-123456/callLbl"', html)
         self.assertEqual(Lead.objects.count(), 0)
 
+    @override_settings(WHATSAPP_NUMBER='919000000000', CONTACT_PHONE='+919000000001', **ADS)
+    def test_clicks_carry_only_location_and_page_slug_labels(self):
+        from .test_content import make_page
+        make_page(title='Araku Day Trip', slug='araku-day-trip')
+        html = self.client.get('/tour-packages/').content.decode()
+        self.assertIn('data-where="trip_card" data-item="araku-day-trip"', html)
+        self.assertIn('data-page-type="tour_packages"', html)
+        page_html = self.client.get('/araku-day-trip/').content.decode()
+        self.assertIn('data-item="araku-day-trip"', page_html)
+        self.assertIn('data-where="page_body"', page_html)
+        self.assertIn('data-where="float"', page_html)
+        self.assertIn('data-page-type="package"', page_html)
+        # Labels are fixed strings; the contact page has no page slug.
+        contact = self.client.get(reverse('core:contact')).content.decode()
+        self.assertIn('data-where="footer"', contact)
+        self.assertNotIn('data-item', contact)
+
+    def test_script_sends_page_type_location_and_item_only(self):
+        js = (STATIC_DIR / 'js' / 'tracking.js').read_text(encoding='utf-8')
+        for param in ('page_type', 'cta_location', 'item_name'):
+            self.assertIn(param, js)
+
     @override_settings(WHATSAPP_NUMBER='', CONTACT_PHONE='')
     def test_trip_card_icons_are_absent_without_numbers(self):
         from .test_content import make_page

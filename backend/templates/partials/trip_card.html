@@ -6,8 +6,8 @@
   {% if trip.duration %}<span class="trip-duration-badge">{{ trip.duration }}</span>{% endif %}
   {% if site.whatsapp_number or site.contact_phone %}
     <div class="trip-card-actions">
-      {% whatsapp_cta text=trip.whatsapp_prefill label="WhatsApp us about this trip" css_class="trip-action trip-action-whatsapp" icon=True %}
-      {% call_cta label="Call us about this trip" css_class="trip-action trip-action-call" icon=True %}
+      {% whatsapp_cta text=trip.whatsapp_prefill label="WhatsApp us about this trip" css_class="trip-action trip-action-whatsapp" icon=True where="trip_card" item=trip.slug %}
+      {% call_cta label="Call us about this trip" css_class="trip-action trip-action-call" icon=True where="trip_card" item=trip.slug %}
     </div>
   {% endif %}
   <div class="trip-card-top">
