@@ -62,12 +62,6 @@
               <li><a href="{% url 'core:contact' %}" class="nav-link{% if request.path == '/contact/' %} active{% endif %}">Contact</a></li>
             </ul>
             <div class="nav-actions">
-              {% if site.contact_phone %}
-                {% call_cta label=site.contact_phone css_class="nav-phone" %}
-              {% endif %}
-              {% if site.whatsapp_number %}
-                {% whatsapp_cta label="WhatsApp" css_class="button button-whatsapp button-nav-whatsapp" %}
-              {% endif %}
               <a class="button button-saffron button-nav-quote" href="{% url 'core:enquiry' %}">Get Free Quotes</a>
             </div>
           </div>
@@ -135,6 +129,7 @@
       {% endblock %}
     </div>
   </footer>
+  {% include "partials/float_cta.html" %}
   {% block sticky_cta %}{% include "partials/sticky_cta.html" %}{% endblock %}
   {% block extra_body %}{% endblock %}
 </body>

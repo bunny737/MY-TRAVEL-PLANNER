@@ -1,9 +1,15 @@
-{% load photos %}
+{% load photos cta %}
 <li class="trip-card">
   <a class="trip-card-media" href="{{ trip.get_absolute_url }}" tabindex="-1" aria-hidden="true">
     {% photo trip.hero_key css_class="trip-card-img" sizes="(max-width: 700px) 90vw, 30vw" %}
   </a>
   {% if trip.duration %}<span class="trip-duration-badge">{{ trip.duration }}</span>{% endif %}
+  {% if site.whatsapp_number or site.contact_phone %}
+    <div class="trip-card-actions">
+      {% whatsapp_cta text=trip.whatsapp_prefill label="WhatsApp us about this trip" css_class="trip-action trip-action-whatsapp" icon=True %}
+      {% call_cta label="Call us about this trip" css_class="trip-action trip-action-call" icon=True %}
+    </div>
+  {% endif %}
   <div class="trip-card-top">
     <span class="trip-type">{% if trip.page_type == 'cab' %}Cab{% elif trip.page_type == 'stay' %}Stay{% else %}Tour package{% endif %}</span>
     <h3><a href="{{ trip.get_absolute_url }}">{{ trip.title }}</a></h3>

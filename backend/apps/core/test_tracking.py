@@ -213,7 +213,7 @@ class FormConversionTests(TestCase):
         for private in ('Asha', '9876543210', '98765', str(Lead.objects.get().pk) + '"'):
             self.assertNotIn(private, marker)
 
-    @override_settings(GOOGLE_ADS_FORM_CONVERSION_LABEL='')
+    @override_settings(GOOGLE_ADS_FORM_CONVERSION_LABEL='', WHATSAPP_NUMBER='', CONTACT_PHONE='')
     def test_marker_without_ads_label_still_reports_the_ga4_event_only(self):
         self.submit()
         html = self.client.get(reverse('core:thank_you')).content.decode()
@@ -263,6 +263,26 @@ class CtaTests(TestCase):
         text = settings.WHATSAPP_PREFILL_TEXT
         self.assertFalse(any(ch.isdigit() for ch in text), text)
         self.assertNotIn('@', text)
+
+    @override_settings(WHATSAPP_NUMBER='919000000000', CONTACT_PHONE='+919000000001', **ADS)
+    def test_trip_cards_have_tracked_whatsapp_and_call_icons_with_only_the_title_prefilled(self):
+        from .test_content import make_page
+        make_page(title='Araku Day Trip', slug='araku-day-trip')
+        html = self.client.get('/tour-packages/').content.decode()
+        self.assertIn('wa.me/919000000000?text=Hi%2C%20I%20want%20a%20quote%20for%20Araku%20Day%20Trip.', html)
+        self.assertIn('trip-action-whatsapp', html)
+        self.assertIn('href="tel:+919000000001"', html)
+        self.assertIn('data-track="call_click" data-ads-send-to="AW-123456/callLbl"', html)
+        self.assertEqual(Lead.objects.count(), 0)
+
+    @override_settings(WHATSAPP_NUMBER='', CONTACT_PHONE='')
+    def test_trip_card_icons_are_absent_without_numbers(self):
+        from .test_content import make_page
+        make_page(title='Araku Day Trip', slug='araku-day-trip')
+        html = self.client.get('/tour-packages/').content.decode()
+        self.assertIn('Araku Day Trip', html)
+        self.assertNotIn('trip-card-actions', html)
+        self.assertNotIn('wa.me', html)
 
     @override_settings(WHATSAPP_NUMBER='919000000000')
     def test_sticky_bar_on_content_pages_but_not_on_form_thank_you_or_404(self):

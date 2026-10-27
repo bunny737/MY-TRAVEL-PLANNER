@@ -1,0 +1,10 @@
+{% load cta %}
+{% if site.whatsapp_number or site.contact_phone or site.contact_email %}
+<div class="float-cta">
+  {% whatsapp_cta label="Chat on WhatsApp" css_class="trip-action trip-action-whatsapp" icon=True %}
+  {% call_cta label="Call us" css_class="trip-action trip-action-call" icon=True %}
+  {% if site.contact_email %}
+    <a class="trip-action trip-action-email" href="mailto:{{ site.contact_email }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="sr-only">Email us</span></a>
+  {% endif %}
+</div>
+{% endif %}

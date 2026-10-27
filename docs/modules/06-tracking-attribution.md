@@ -80,6 +80,10 @@ Highest-risk module for invariant 4. Cookie/analytics consent requirements must 
   while the IDs are blank. Settle the banner question (below) BEFORE putting real IDs in the production env.
 - [DECISION 2026-10-25] WhatsApp prefill is generic ("Hi, I want an Araku tour quote.") from `WHATSAPP_PREFILL_TEXT`; the plan's
   "for 4 people" variant would need page-specific text passed to `{% whatsapp_cta text="..." %}` (Module 02/08 pages can do that).
+- [DECISION 2026-10-27] Every trip card (home, /tour-packages/) carries round WhatsApp and call icon buttons over the photo, via
+  `{% whatsapp_cta icon=True %}` / `{% call_cta icon=True %}` (same tracked links, same `data-track` events, icon + screen-reader label).
+  The WhatsApp prefill is the page's own title only ("Hi, I want a quote for <title>."), never price, dates or personal details.
+  Numbers come from `WHATSAPP_NUMBER` / `CONTACT_PHONE`; the icons are not rendered when both are blank. A click is still not a lead.
 - [OPEN] Cookie consent banner / Google Consent Mode required for GA4/Ads in the target jurisdictions (plan §13) — legal check.
   Blocks real tag IDs in production.
 - [OPEN] Real GA4 measurement ID, Ads ID and the three conversion labels (create the conversion actions in the Ads account first).
@@ -91,3 +95,5 @@ Highest-risk module for invariant 4. Cookie/analytics consent requirements must 
 - 2026-10-25  Created stub from the project setup.
 - 2026-10-25  Built: attribution middleware, tracking.js, WhatsApp/call CTAs, sticky mobile bar, once-only conversion marker,
   35 tests; verified a campaign click -> form -> attributed lead against the running container.
+- 2026-10-27  WhatsApp + call icon buttons on every trip card (2 tests). Floating WhatsApp, call and email buttons bottom right of
+  every page replace the nav-bar phone/WhatsApp and the mobile bar's WhatsApp button; the email link is a plain `mailto:` (no tracked event).
