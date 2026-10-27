@@ -1,10 +1,31 @@
+import hmac
 import re
 from urllib.parse import urlsplit
 
 from django.conf import settings
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponseForbidden, HttpResponsePermanentRedirect
 
 from .attribution import ATTRIBUTION_SESSION_KEY, MAX_LENGTHS
+
+
+class EdgeSecretMiddleware:
+    """403 for any request that did not come through our nginx edge, once EDGE_SHARED_SECRET is set.
+
+    The service lives in its own GCP project, so Cloud Run's "internal" ingress cannot admit the edge VM; without this
+    check anyone could call the *.run.app URL directly with a forged X-Forwarded-For and dodge the lead-form throttle.
+    /health/ stays open for probes. A blank secret (development, tests, first smoke test) turns the check off.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        secret = settings.EDGE_SHARED_SECRET
+        if secret and request.path != '/health/':
+            sent = request.META.get('HTTP_X_TRAVEL_EDGE_KEY', '')
+            if not hmac.compare_digest(sent.encode(), secret.encode()):
+                return HttpResponseForbidden('Forbidden')
+        return self.get_response(request)
 
 
 class CanonicalHostMiddleware:

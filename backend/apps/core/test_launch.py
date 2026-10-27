@@ -160,6 +160,11 @@ class ClientIpTests(SimpleTestCase):
         self.assertEqual(client_ip(request), '203.0.113.7')
         self.assertEqual(client_ip(self.request(HTTP_X_FORWARDED_FOR='34.120.0.1')), '10.0.0.9')  # too short
 
+    @override_settings(CLIENT_IP_HEADER='X-Forwarded-For', CLIENT_IP_TRUSTED_HOPS=2)
+    def test_behind_the_nginx_edge_uses_the_address_nginx_wrote(self):
+        # nginx overwrites X-Forwarded-For with its peer, then Google appends the edge VM's address.
+        self.assertEqual(client_ip(self.request(HTTP_X_FORWARDED_FOR='203.0.113.7, 34.14.158.50')), '203.0.113.7')
+
     @override_settings(CLIENT_IP_HEADER='X-Real-IP')
     def test_single_value_header_and_fallback(self):
         self.assertEqual(client_ip(self.request(HTTP_X_REAL_IP='198.51.100.2')), '198.51.100.2')
@@ -188,6 +193,46 @@ class CanonicalHostTests(TestCase):
     @override_settings(REDIRECT_TO_CANONICAL_HOSTS=[])
     def test_nothing_redirects_when_unset(self):
         self.assertEqual(self.client.get('/', HTTP_HOST='www.mytravelplanner.in').status_code, 200)
+
+
+EDGE_KEY = 'a1' * 32
+
+
+@override_settings(EDGE_SHARED_SECRET=EDGE_KEY, ALLOWED_HOSTS=['mytravelplanner.in', 'travel-web-x.a.run.app'])
+class EdgeSecretTests(TestCase):
+    def test_direct_requests_to_run_app_are_refused(self):
+        for headers in ({}, {'HTTP_X_TRAVEL_EDGE_KEY': 'wrong'}, {'HTTP_X_TRAVEL_EDGE_KEY': ''}):
+            response = self.client.get('/', HTTP_HOST='travel-web-x.a.run.app', **headers)
+            self.assertEqual(response.status_code, 403, headers)
+        # the lead form too: a POST cannot reach the throttle or the database without the key
+        self.assertEqual(self.client.post(reverse('core:enquiry'), {}, HTTP_HOST='travel-web-x.a.run.app').status_code, 403)
+
+    def test_requests_through_the_edge_are_served(self):
+        response = self.client.get('/', HTTP_HOST='mytravelplanner.in', HTTP_X_TRAVEL_EDGE_KEY=EDGE_KEY)
+        self.assertEqual(response.status_code, 200)
+
+    def test_health_stays_open_for_probes(self):
+        self.assertEqual(self.client.get('/health/', HTTP_HOST='travel-web-x.a.run.app').status_code, 200)
+
+    @override_settings(EDGE_SHARED_SECRET='')
+    def test_blank_secret_turns_the_check_off(self):
+        self.assertEqual(self.client.get('/', HTTP_HOST='mytravelplanner.in').status_code, 200)
+
+    def test_runs_before_everything_else(self):
+        self.assertEqual(settings.MIDDLEWARE[0], 'apps.core.middleware.EdgeSecretMiddleware')
+
+
+@override_settings(USE_X_FORWARDED_HOST=True, ALLOWED_HOSTS=['mytravelplanner.in', 'travel-web-x.a.run.app'])
+class ForwardedHostTests(SimpleTestCase):
+    def test_public_host_comes_from_the_edge(self):
+        request = RequestFactory().get('/', HTTP_HOST='travel-web-x.a.run.app', HTTP_X_FORWARDED_HOST='mytravelplanner.in')
+        self.assertEqual(request.get_host(), 'mytravelplanner.in')
+
+    def test_forwarded_host_is_still_checked_against_allowed_hosts(self):
+        from django.core.exceptions import DisallowedHost
+        request = RequestFactory().get('/', HTTP_HOST='travel-web-x.a.run.app', HTTP_X_FORWARDED_HOST='evil.example')
+        with self.assertRaises(DisallowedHost):
+            request.get_host()
 
 
 def prod_settings(code, **overrides):
@@ -296,6 +341,28 @@ class DeployFilesTests(SimpleTestCase):
         self.assertIn('release) build; migrate; deploy_service ;;', self.script)
         self.assertIn('createcachetable', self.script)
         self.assertIn('placeholders', self.script)  # refuses an unfilled env file
+
+    def test_never_deploys_into_the_pglive_projects(self):
+        self.assertIn('pglive-*', self.script)
+        self.assertNotIn('sql instances patch', self.script)  # the shared instance's settings belong to PGLive
+
+    def test_shared_instance_role_is_capped_and_not_a_cloudsql_superuser(self):
+        sql = (DEPLOY_DIR / 'cloudsql' / 'create-travel-db.sql').read_text(encoding='utf-8')
+        self.assertIn('CONNECTION LIMIT 12', sql)
+        self.assertIn('NOCREATEROLE', sql)
+        self.assertIn('REVOKE ALL ON DATABASE travel_platform FROM PUBLIC', sql)
+        self.assertNotIn('pg_platform', sql)  # never touches PGLive's database
+        self.assertNotIn('gcloud sql users create', self.script)  # that adds cloudsqlsuperuser
+
+    def test_edge_config_only_adds_its_own_server_blocks(self):
+        conf = (DEPLOY_DIR / 'edge' / 'travel.conf.template').read_text(encoding='utf-8')
+        self.assertNotIn('default_server', conf)
+        self.assertNotRegex(conf, r'pglive_|\$upstream_host|pglive-tls')  # none of PGLive's zones, variables or snippets
+        self.assertIn('proxy_set_header X-Forwarded-For $remote_addr;', conf)
+        self.assertIn('include /etc/nginx/travel-edge-key.conf;', conf)
+        setup = (DEPLOY_DIR / 'edge' / 'setup-travel-edge.sh').read_text(encoding='utf-8')
+        self.assertIn('nginx -t', setup)
+        self.assertNotRegex(setup, r'>\s*/etc/nginx/conf\.d/(?!travel)')  # writes only travel* files
 
     def test_backups_are_encrypted_on_the_fly_and_restore_prints_no_personal_data(self):
         download = (DEPLOY_DIR / 'backup' / 'download_backup.sh').read_text(encoding='utf-8')
