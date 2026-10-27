@@ -19,4 +19,6 @@ outcome as a `[DECISION]` line in the affected module spec.
 | Legal review of privacy/consent wording (DPDP Rules 2025) | Not started | Founder, before ads | 03, 05 |
 | CSS approach | Plain CSS (Tailwind only if requested) | Founder, Day 2 | 01 |
 | Languages | English only at launch | Founder, Day 2 | 01 |
+| Package/cab/stay prices | **DECIDED 2026-10-25 (revised):** dated "from" prices copied from a partner quote, hidden after `PRICE_MAX_AGE_DAYS` (90); never name the partner | Founder | 02, 10 |
+| Partner (arakutourpackages.com) permission | **GIVEN 2026-10-25 (written, per the founder):** use their published facts and show their dated quotes. No photos supplied. Keep the message with the partner's record in admin | Founder | 10 |
 | Quote-range storage for the cost estimator | Undecided; needs approval (fifth model) | Founder, Phase 1 | 09 |

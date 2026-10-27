@@ -1,0 +1,15 @@
+{# The "options and rates" list of a page with a current partner quote (page.display_price.options). Nothing renders without one. #}
+{% with price=page.display_price %}{% if price and price.options %}<!--price-->
+<section class="content-section price-options-section" aria-labelledby="price-options-heading">
+  <div class="section-header">
+    <span class="eyebrow">{% if page.page_type == 'stay' %}Stays and rates{% else %}Options and rates{% endif %}</span>
+    <h2 id="price-options-heading">{% if page.page_type == 'stay' %}From rates for these stays{% else %}Choose how long you want to go{% endif %}</h2>
+    <p class="muted">Each amount is a "from" amount {{ price.unit }}, based on a local partner's quote dated {{ price.quoted_on|date:"j M Y" }}. Your own quote depends on your dates, {% if page.page_type == 'stay' %}room type{% else %}vehicle{% endif %} and group size.</p>
+  </div>
+  <ul class="price-options">
+    {% for option in price.options %}
+      <li class="price-option"><span class="price-option-label">{{ option.label }}</span><strong class="price-option-amount">{{ option.amount }}</strong></li>
+    {% endfor %}
+  </ul>
+</section>
+<!--/price-->{% endif %}{% endwith %}

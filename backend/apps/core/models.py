@@ -72,6 +72,7 @@ class Lead(models.Model):
     class ServiceType(models.TextChoices):
         TOUR = 'tour', 'Tour package'
         CAB = 'cab', 'Cab'
+        STAY = 'stay', 'Hotel / stay'
 
     class Status(models.TextChoices):
         NEW = 'new', 'New'
@@ -241,8 +242,11 @@ class Destination(models.Model):
 # URLs served by other routes. A page may not take one of these slugs (the admin path is checked separately).
 RESERVED_SLUGS = frozenset({
     'admin', 'static', 'media', 'health', 'contact', 'privacy', 'terms', 'enquiry', 'thank-you',
-    'sitemap', 'robots', 'home', 'photo-credits', 'destinations',
+    'sitemap', 'robots', 'home', 'photo-credits', 'destinations', 'tour-packages', 'blog',
 })
+
+# Page types that may carry a dated partner-quote price (owner decision 2026-10-25, revised). Guides and articles never do.
+PRICED_PAGE_TYPES = ('package', 'cab', 'stay')
 
 
 class ContentPageQuerySet(models.QuerySet):
@@ -251,23 +255,38 @@ class ContentPageQuerySet(models.QuerySet):
 
 
 class ContentPage(models.Model):
-    """An editable public page: the homepage, a tour/cab landing page, or a guide.
+    """An editable public page: the homepage, a tour/cab/stay landing page, a guide or a blog article.
 
-    There are deliberately no price fields. Pages never state a price; they invite a free quote instead
-    (CLAUDE.md invariant 3).
+    The only prices on the site come from the five `price_*` fields below: a "from" amount copied from a dated partner
+    quote. A price older than PRICE_MAX_AGE_DAYS hides itself and the page falls back to "request a current quote"
+    (CLAUDE.md invariant 3). Free-text fields never hold a price (tests scan them).
     """
 
     class PageType(models.TextChoices):
         HOME = 'home', 'Homepage (exactly one)'
         PACKAGE = 'package', 'Tour package page'
         CAB = 'cab', 'Cab page'
+        STAY = 'stay', 'Hotel / stay page'
         GUIDE = 'guide', 'Guide'
+        ARTICLE = 'article', 'Blog article'
+
+    class PriceUnit(models.TextChoices):
+        PER_COUPLE = 'per_couple', 'per couple'
+        PER_PERSON = 'per_person', 'per person'
+        PER_VEHICLE_DAY = 'per_vehicle_day', 'per vehicle per day'
+        PER_VEHICLE_TRIP = 'per_vehicle_trip', 'per vehicle per trip'
+        PER_ROOM_NIGHT = 'per_room_night', 'per room per night'
 
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft (not public)'
         PUBLISHED = 'published', 'Published'
 
     destination = models.ForeignKey(Destination, null=True, blank=True, on_delete=models.SET_NULL, related_name='pages')
+    also_visits = models.ManyToManyField(
+        Destination, blank=True, related_name='stopover_pages',
+        help_text='Other places this trip covers. The main destination above counts too, so leave it out here. '
+                  'The place filter on /tour-packages/ matches every place listed.',
+    )
     page_type = models.CharField(max_length=10, choices=PageType.choices)
     title = models.CharField(max_length=150, help_text='Shown as the page heading. Match what people search for.')
     slug = models.SlugField(
@@ -276,6 +295,12 @@ class ContentPage(models.Model):
     sort_order = models.PositiveSmallIntegerField(default=100, help_text='Lower numbers are listed first on the homepage.')
     intro = models.TextField(blank=True, help_text='Opening paragraph. Say plainly that independent partners send the quotes.')
     duration = models.CharField(max_length=80, blank=True, help_text='e.g. "Day trip, or 2 days / 1 night".')
+    days_min = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Package pages only. Shortest trip length in days; the listing filter uses it.',
+    )
+    days_max = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text='Package pages only. Longest trip length in days (same as the shortest if it is fixed).',
+    )
     body = models.TextField(blank=True, help_text='Paragraphs separated by a blank line. Plain text only.')
     itinerary = models.TextField(
         blank=True,
@@ -299,6 +324,26 @@ class ContentPage(models.Model):
     canonical_override = models.CharField(
         max_length=300, blank=True, help_text='Rarely needed. A full https:// URL, or a path starting with /.',
     )
+    # Dated partner-quote price. All five fields are set together or left blank. `price_partner` is internal and never rendered.
+    price_from = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text='"From" amount in INR, copied from a partner quote. Leave all price fields blank to show "request a quote".',
+    )
+    price_unit = models.CharField(max_length=20, choices=PriceUnit.choices, blank=True)
+    price_basis = models.CharField(
+        max_length=120, blank=True, help_text='What the quote assumed, shown to visitors, e.g. "AC sedan, 2 travellers, weekday".',
+    )
+    price_options = models.TextField(
+        blank=True,
+        help_text='Optional list of options and their "from" amounts, one per line: "2 days / 1 night | 15000". '
+                  'They share the unit, date and partner above and hide with them.',
+    )
+    price_quoted_on = models.DateField(null=True, blank=True, help_text='The date of the partner quote. The price hides itself when it is too old.')
+    price_partner = models.ForeignKey(
+        Partner, null=True, blank=True, on_delete=models.PROTECT, related_name='quoted_pages',
+        help_text='Who gave the quote. Internal only: never shown on the site.',
+    )
+
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     published_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -352,8 +397,61 @@ class ContentPage(models.Model):
         return self.hero_image or images.DEFAULT_FOR_TYPE[self.page_type]
 
     @property
+    def article_segments(self):
+        """Body of a guide or article as headings, photos and paragraphs (see content.parse_article)."""
+        return content.parse_article(self.body)
+
+    @property
+    def article_headings(self):
+        return [s for s in self.article_segments if s.kind == 'heading']
+
+    @property
+    def read_minutes(self):
+        return max(1, round(len((self.body or '').split()) / 200))
+
+    @property
+    def places(self):
+        """Every destination this page covers: the main one first, then the others. Prefetch `also_visits` in listings."""
+        main = [self.destination] if self.destination_id else []
+        return main + [d for d in self.also_visits.all() if d.pk != self.destination_id]
+
+    @property
+    def uses_article_body(self):
+        return self.page_type in (self.PageType.GUIDE, self.PageType.ARTICLE)
+
+    # --- dated price -------------------------------------------------------
+    @property
+    def has_price(self):
+        return self.price_from is not None
+
+    @property
+    def price_is_current(self):
+        if not self.has_price or self.price_quoted_on is None:
+            return False
+        age = timezone.localdate() - self.price_quoted_on
+        return timedelta(0) <= age <= timedelta(days=settings.PRICE_MAX_AGE_DAYS)
+
+    @property
+    def display_price(self):
+        """What the page may show, or None (then it says "request a current quote"). Never exposes the partner."""
+        if not self.price_is_current:
+            return None
+        try:
+            options = [{'label': label, 'amount': content.format_inr(value)}
+                       for label, value in content.parse_price_options(self.price_options)]
+        except ValueError:
+            options = []  # a bad line is refused when saving in admin; never show a half-parsed list
+        return {
+            'amount': content.format_inr(self.price_from),
+            'unit': self.get_price_unit_display(),
+            'basis': self.price_basis,
+            'quoted_on': self.price_quoted_on,
+            'options': options,
+        }
+
+    @property
     def has_form(self):
-        return self.page_type in (self.PageType.HOME, self.PageType.PACKAGE, self.PageType.CAB)
+        return self.page_type in (self.PageType.HOME, self.PageType.PACKAGE, self.PageType.CAB, self.PageType.STAY)
 
     @property
     def cta_href(self):
@@ -362,7 +460,7 @@ class ContentPage(models.Model):
 
     @property
     def form_service(self):
-        return {self.PageType.PACKAGE: 'tour', self.PageType.CAB: 'cab'}.get(self.page_type, '')
+        return {self.PageType.PACKAGE: 'tour', self.PageType.CAB: 'cab', self.PageType.STAY: 'stay'}.get(self.page_type, '')
 
     @property
     def whatsapp_prefill(self):
@@ -396,6 +494,13 @@ class ContentPage(models.Model):
         if self.hero_image and not images.exists(self.hero_image):
             errors['hero_image'] = 'Choose a photo from the list.'
 
+        errors.update(self._price_errors())
+        errors.update(self._days_errors())
+        if self.uses_article_body:
+            unknown = [s.text for s in self.article_segments if s.kind == 'photo' and not images.exists(s.text)]
+            if unknown:
+                errors['body'] = f'Unknown photo key in [photo: ...]: {", ".join(unknown)}. Use a key from the photo library.'
+
         # Search results need distinct titles and descriptions, so duplicates are refused up front.
         others = ContentPage.objects.exclude(pk=self.pk)
         if self.effective_title and any(
@@ -412,6 +517,41 @@ class ContentPage(models.Model):
                 errors['intro'] = 'An introduction is required before publishing.'
         if errors:
             raise ValidationError(errors)
+
+    def _days_errors(self):
+        if self.days_min is None and self.days_max is None:
+            return {}
+        if self.page_type != self.PageType.PACKAGE:
+            return {'days_min': 'Only tour package pages have a trip length in days. Clear both fields.'}
+        if self.days_min is None or self.days_max is None:
+            return {'days_min': 'Fill in both the shortest and the longest trip length, or clear both.'}
+        if self.days_min < 1:
+            return {'days_min': 'A trip is at least 1 day.'}
+        if self.days_min > self.days_max:
+            return {'days_max': 'The longest trip length cannot be less than the shortest.'}
+        return {}
+
+    def _price_errors(self):
+        parts = [self.price_from is not None, bool(self.price_unit), bool(self.price_basis), self.price_quoted_on is not None,
+                 self.price_partner_id is not None]
+        has_options = bool(self.price_options.strip())
+        if not any(parts) and not has_options:
+            return {}
+        if self.page_type not in PRICED_PAGE_TYPES:
+            return {'price_from': 'Only package, cab and stay pages can show a price. Clear the price fields.'}
+        if not all(parts):
+            return {'price_from': 'Fill in all five price fields (amount, unit, what it assumes, quote date, partner) or clear them all.'}
+        errors = {}
+        if self.price_from <= 0:
+            errors['price_from'] = 'The amount must be above zero.'
+        if self.price_quoted_on > timezone.localdate():
+            errors['price_quoted_on'] = 'The quote date cannot be in the future.'
+        if has_options:
+            try:
+                content.parse_price_options(self.price_options)
+            except ValueError as error:
+                errors['price_options'] = f'Each line must look like "2 days / 1 night | 15000": a label, a bar, then an amount above zero. Check: {error}'
+        return errors
 
     def save(self, *args, **kwargs):
         if self.page_type == self.PageType.HOME:

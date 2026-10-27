@@ -128,9 +128,10 @@ class ContentPageModelTests(TestCase):
         self.assertIn('intro', ctx.exception.message_dict)
         ContentPage(page_type='guide', title='G', slug='g', status='draft').full_clean()
 
-    def test_there_are_no_price_fields(self):
+    def test_the_only_price_fields_are_the_dated_partner_quote_fields(self):
         names = {f.name for f in ContentPage._meta.get_fields()}
-        self.assertFalse([n for n in names if re.search(r'price|cost|fee|amount|rate', n)], names)
+        found = {n for n in names if re.search(r'price|cost|fee|amount|rate', n)}
+        self.assertEqual(found, {'price_from', 'price_unit', 'price_basis', 'price_quoted_on', 'price_partner', 'price_options'})
 
     def test_helpers_for_forms_and_links(self):
         self.assertEqual(make_page(page_type='package', slug='a').form_service, 'tour')
@@ -230,7 +231,7 @@ class ContentPageViewTests(TestCase):
         self.assertEqual(html.count('id="quote"'), 1)
         self.assertIn('<option value="tour" selected>', html)
         self.assertEqual(html.count('class="cta-row"'), 2)  # near the top and again after the content
-        self.assertIn('We are a travel enquiry and referral platform', html)
+        self.assertNotIn('We are a travel enquiry and referral platform', html)
         self.assertIn('Hi%2C%20I%20want%20a%20quote%20for%20Araku%20Tour%20Packages.', html)
         self.assertIn('data-track="whatsapp_click"', html)
 
@@ -308,7 +309,9 @@ class HomePageTests(TestCase):
         make_page(title='A Guide', slug='a-guide', page_type='guide')
         html = self.client.get('/').content.decode()
         self.assertIn('Trips you can ask about', html)
-        self.assertLess(html.index('First Trip'), html.index('Second Trip'))
+        # The nav menus also list page titles, so look only at the homepage section.
+        section = html[html.index('Trips you can ask about'):]
+        self.assertLess(section.index('First Trip'), section.index('Second Trip'))
         self.assertIn('href="/first/"', html)
         for absent in ('Hidden Draft', 'A Guide'):
             self.assertNotIn(absent, html)
@@ -337,7 +340,8 @@ class SitemapAndRobotsTests(TestCase):
         _, locs = self.locs()
         self.assertEqual(sorted(locs), sorted([
             'https://site.test/', 'https://site.test/live/', 'https://site.test/guide-live/',
-            'https://site.test/destinations/', 'https://site.test/contact/', 'https://site.test/privacy/', 'https://site.test/terms/',
+            'https://site.test/destinations/', 'https://site.test/tour-packages/', 'https://site.test/blog/',
+            'https://site.test/contact/', 'https://site.test/privacy/', 'https://site.test/terms/',
         ]))
 
     def test_never_lists_form_thank_you_or_admin_urls(self):

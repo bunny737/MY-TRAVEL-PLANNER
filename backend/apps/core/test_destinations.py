@@ -21,7 +21,10 @@ def make_destination(**overrides):
 
 
 def nav_of(html):
-    return html[html.index('<header class="site-header">'):html.index('</header>')]
+    """The Destinations dropdown only: the other nav menus list package, cab and stay pages by title."""
+    header = html[html.index('<header class="site-header">'):html.index('</header>')]
+    start = header.rindex('<details', 0, header.index('<summary class="nav-link">Destinations</summary>'))
+    return header[start:header.index('</details>', start)]
 
 
 def footer_of(html):

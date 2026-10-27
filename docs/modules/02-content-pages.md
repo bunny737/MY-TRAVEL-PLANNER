@@ -13,9 +13,9 @@
 ## Purpose
 Serve the homepage and the commercial landing page (`/araku-tour-packages/`) from content edited in Django admin, with correct
 SEO basics. Later pages (cab, 2D/1N, itinerary, Lambasingi, guides) are just more `ContentPage` rows — no new code per page.
-**Pages never state a price** (owner decision 2026-10-25): there are no price fields, and every page invites a free quote instead.
+**Prices:** a page states a price only from its dated partner-quote fields (owner decision 2026-10-25, revised); otherwise it invites a free quote.
 
-## Data model (as-built) — migrations core.0003, core.0004 (adds `hero_image`)
+## Data model (as-built) — migrations core.0003, core.0004 (adds `hero_image`), core.0008 (`days_min`, `days_max`), core.0009 (`also_visits`)
 ```
 Table: core_destination
   id, name, slug (unique), summary, is_active, sort_order
@@ -29,6 +29,8 @@ Table: core_contentpage
                                  terms, enquiry, thank-you, sitemap, robots, home
   sort_order                     lower = listed first on the homepage
   intro, duration, body          plain text; body = paragraphs separated by a blank line
+  days_min, days_max             package pages only: trip length in days for the listing filter (both or neither)
+  also_visits                    other Destinations the trip covers (many-to-many); `destination` stays the main place
   itinerary, faq                 text blocks separated by a blank line: first line = heading/question, rest = text
   inclusions, exclusions         one item per line
   hero_image (40)                key of a photo in apps/core/images.py; blank = default photo for the page type
@@ -68,6 +70,41 @@ GET  /destinations/            every active Destination as a card (photo, summar
   default sort order filled); DRAFT `lambasingi-tour-packages` and `vizag-tour-packages` pages alongside the Araku draft.
 - **Copy:** default `WHATSAPP_PREFILL_TEXT` is now "Hi, I want a tour quote."; the enquiry notes placeholder asks which places.
 - Tests: `test_destinations.py` (21).
+
+## Full site build (2026-10-25) — dated prices, stays, blog, listings (migration core.0006)
+Owner asked for a site as complete as the partner's (arakutourpackages.com), facts only and in our own words. Plan: the session's plan file;
+analysis of that site is in the chat history, the fact sheet will be `docs/research/partner-facts-2026-10.md`.
+- **Dated partner-quote prices (supersedes "no prices").** `ContentPage.price_from` (Decimal 12,2), `price_unit`, `price_basis`, `price_quoted_on`,
+  `price_partner` (FK Partner, PROTECT, internal only). All five set or none; package/cab/stay pages only; amount > 0; date not in the future.
+  `display_price` returns nothing when the quote is older than `PRICE_MAX_AGE_DAYS` (env, default 90), so a stale price hides itself and the page
+  invites a quote. Rendered by `partials/price_badge.html` (card and full variants, wrapped in `<!--price-->` markers the tests use) and the fact strip;
+  always with the quote date; the partner is never named. No Offer/Product/rating markup. Admin: "Price" fieldset, list column and a current/stale/none filter.
+- **Price options (migration core.0007, owner request: "show packages and hotels with the same prices as the partner site").** `price_options` (text, one
+  line per option: `label | amount`, amount parsed as Decimal, above zero, label at most 80 characters) lists several durations on a package page or several
+  properties on a stay page. It shares the unit, quote date and partner of the five fields and hides with them. Shown by `partials/price_options.html`
+  (inside the `<!--price-->` markers) as "Options and rates" / "Stays and rates"; a bad line is refused on save and never half-shown.
+- **New page types:** `stay` (has the enquiry form, preselects `Lead.ServiceType.STAY`) and `article` (blog; no form, CTA links). Defaults in `images.DEFAULT_FOR_TYPE`.
+- **Guide/article bodies** use `content.parse_article`: `## Heading` lines (anchored, unique ids, contents box from 3 headings) and `[photo: key]` lines
+  (registry photos only, refused on save if the key is unknown, caption carries the credit). Still escaped plain text.
+- **Listings:** `/tour-packages/` (packages by destination, `#cabs`, `#stays`) and `/blog/` (newest first; `?destination=` chips; canonical stays `/blog/`;
+  filtered URLs are not in the sitemap). Both in the sitemap; `tour-packages` and `blog` are reserved slugs.
+- **Listing filters (`/tour-packages/`, 2026-10-26, modelled on araku-valley.com/packages):** type tabs (only types that have published pages), place
+  chips (`?destination=<slug>`), trip-length chips (`?days=1|2|3|4`) and a sort (`?sort=shortest|price`). All are plain GET links plus one
+  small form, no JavaScript. Unknown values fall back to the default. The canonical stays `/tour-packages/` and filtered URLs are not in the sitemap.
+  An empty result explains itself and shows the "Can't find the trip you want?" enquiry band, which also closes the page.
+- **Navigation:** Tour packages ▾, Destinations ▾, Cabs & stays ▾ (published pages only, hidden when empty, no JS), Blog. Footer links to both listings.
+- **Related pages** on every content page: same destination, published, commercial first, max 6.
+- **Homepage** shows the first 6 package/cab/stay pages with a link to `/tour-packages/`.
+- **WhatsApp share** on articles: `https://wa.me/?text=<title + canonical URL>`; no `data-track`, so it is not counted as a business WhatsApp click.
+- **Photos for Vanjangi and Maredumilli (4, all CC BY-SA 4.0, licence read from the Commons file metadata):** `vanjangi-hills` (Muralikrishna m),
+  `vanjangi-sunrise` (iMahesh; cropped to the sky and clouds because the full frame shows identifiable people), `maredumilli-falls` and
+  `maredumilli-forest` (S. Sri Harsha; forest cropped to trees only). Each place now has two photos, so its gallery strip works. The library is
+  about 3.8 MB, so the whole-library test cap went from 3.5 to 4 MB.
+- Tests: `test_prices.py`, `test_blog.py`, `test_listings.py`, `test_site_seed.py`; 394 tests pass. The launch content itself is described in Module 10.
+- [DECISION 2026-10-25] Owner: reverses "no prices on package and cab pages" in favour of dated partner-quote prices. CLAUDE.md invariant 3 updated.
+  Free-text fields still never hold a price (the seed tests and `PRICE_WORDS` scans enforce it).
+- [DECISION 2026-10-25] Owner: partner photos allowed only if the partner owns them and licenses them in writing (not yet built; needs a licence
+  entry in `images.py`).
 
 ## Photos (added 2026-10-25) — see also docs/dev-setup.md "Adding a photo"
 - **Library:** 9 free-licence photos of Araku Valley from Wikimedia Commons (8 × CC BY-SA 4.0 / 2.0, 1 × CC0), each licence checked on its
@@ -117,7 +154,8 @@ Admin: ContentPage list with filters, "Publish selected" (runs full validation, 
 1. Only `published` pages render; drafts and the home row are not served at `/<slug>/`.
 2. Every page has one H1, a unique `<title>` and meta description (duplicates are refused when saving, case-insensitively), and a
    self-canonical unless `canonical_override` (https URL or a `/path`) is set.
-3. No prices anywhere: no price fields; a test scans rendered pages (and the seed) for ₹ / Rs / INR / "price".
+3. Prices only from the five dated partner-quote fields (see "Full site build"); free text, guides, articles and the homepage never hold a
+   price. Tests scan rendered pages (and the seed) for ₹ / Rs / INR / "price" outside the `<!--price-->` blocks.
 4. The sitemap lists indexable pages only; form, thank-you, admin and health URLs are never listed. `/enquiry/` stays crawlable
    (it is linked and `noindex`; blocking it in robots.txt would hide the noindex).
 5. Each page carries the referral disclosure next to its CTAs, one form (package/cab/home), and WhatsApp CTAs near the top and after the content.
@@ -177,6 +215,22 @@ The same command also creates the Lambasingi and Vizag package drafts and, since
 - [DECISION 2026-10-25] Distances and temperatures were left out of the new drafts (no source); a test rejects "<n> km" and degrees on them.
 - [OPEN] Review and publish the Lambasingi and Vizag drafts after checking the stops with operators.
 - [OPEN] Guides are linked from their destination's card on `/destinations/` once published; add in-page links from related pages (Module 10).
+- [DECISION 2026-10-26] Trip length for the listing filter is structured: `days_min` / `days_max` on ContentPage (core.0008), package pages only, both
+  or neither, `1 <= min <= max`. The free-text `duration` is still what cards show. Migration 0008 fills the nine launch packages by slug, only where both
+  fields are empty, so a value edited in admin is never overwritten; `seed_site_content` sets them for new databases.
+- [DECISION 2026-10-26] A trip-length chip matches by range overlap, so a "1 to 5 days" package appears under every length it can cover. Choosing a length
+  shows packages only (cabs and stays have no day count). A package with no days set is left out when a length is chosen.
+- [DECISION 2026-10-26] "Lowest from price first" ranks only trips whose dated price is current (`price_is_current`); expired or missing prices go last
+  and are never shown. The "from" amounts are compared as shown and are not converted between units (per couple, per person, per vehicle), so the page
+  says the ranking uses current dated partner quotes and that the visitor's own quote will differ. Revisit if this misleads once more priced pages exist.
+- [DECISION 2026-10-26] Reference page copy ("Best Deals", "Book the best ... packages") was not carried over (invariant 3). A tab for a type with no
+  published pages is not shown, so the unpublished cab drafts do not produce an empty "Cabs" tab.
+- [DECISION 2026-10-26] A trip can cover several places: `ContentPage.also_visits` (many-to-many to Destination, core.0009, no new model). The
+  `destination` FK stays the main place (grouping, breadcrumbs, the Destinations menu). `ContentPage.places` is the main place plus the extras, without
+  duplicates. The place chips on `/tour-packages/` list every place any published trip covers and match on all of them, so a Vizag + Araku trip shows under
+  both. Cards for multi-place trips say "Covers Araku Valley · Vizag · Lambasingi". The migration fills the three launch combo packages (3-day Vizag + Araku,
+  Araku + Lambasingi, 4 to 5 day Vizag + Araku + Lambasingi) only where no extras are set; `seed_site_content` sets them for new databases.
+  `/destinations/` and the destination menus still use the main place only.
 
 ## Changelog
 - 2026-10-25  Created stub from the project setup.
@@ -190,3 +244,7 @@ The same command also creates the Lambasingi and Vizag package drafts and, since
 - 2026-10-25  Visual design overhaul and header navbar implementation: full responsive navigation menu, brand emblem, modern typography, timeline itinerary styling, inclusions/exclusions comparison grid, FAQ cards, and refined form layout; all 183 tests pass.
 - 2026-10-25  Destinations: Destination.hero_image (core.0005), Destinations menu + footer, `/destinations/` hub, homepage destination
   band, per-destination photo strips, 4 Lambasingi/Vizag photos, Lambasingi and Vizag draft pages in the seed; 295 tests pass; ERD regenerated.
+- 2026-10-26  `/tour-packages/` filters and sort (type, place, trip length, recommended / shortest / price) and the "plan a custom trip" band;
+  `days_min` / `days_max` (core.0008, with backfill); `test_listing_filters.py` (23 tests); 442 tests pass; ERD regenerated.
+- 2026-10-26  Multi-place trips: `ContentPage.also_visits` (core.0009, with backfill), place filter matches every covered place, "Covers ..." line on
+  cards, filter panel restyle, referral paragraph removed from `/tour-packages/`; 451 tests pass; ERD regenerated.

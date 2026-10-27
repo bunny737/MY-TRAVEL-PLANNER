@@ -19,7 +19,7 @@ store the consent that allows sharing, and let the founder qualify and manually 
 Table: core_lead   (apps.core.models.Lead, migration core.0002)
   id
   name (120), phone (normalised +91…/+intl)          required
-  service_type: tour | cab                           required
+  service_type: tour | cab | stay                    required (stay added 2026-10-25, migration core.0006; stay pages preselect it)
   travel_date_or_month (60, free text), travellers (1–100)   required
   pickup_city (80), budget (60, free text), notes (≤1000 via form)   optional
   status: new | qualified | referred | partner_responded | won | lost | spam | invalid | withdrawn   (default new)

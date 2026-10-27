@@ -100,6 +100,24 @@ PHOTOS = (
            'Aerial view of waves breaking on rocks and sand at Rushikonda beach, Visakhapatnam',
            'Aerial view of Rushikonda beach', 'iMahesh', BY_SA_4, 'Aerial_view_of_Rushikonda_beach.jpg',
            gallery=True, place='vizag'),
+    # Vanjangi and Maredumilli (added 2026-10-25; licences checked on the Commons file pages). The Vanjangi sunrise photo was
+    # cropped to the sky and clouds because the full frame shows identifiable people.
+    _photo('vanjangi-hills', BOTH, (1600, 742),
+           'Clouds filling the valleys between green hills, seen from the Vanjangi hills near Paderu',
+           'Vanjangi hills - paderu - andhrapradesh (4)', 'Muralikrishna m', BY_SA_4,
+           'Vanjangi_hills_-_paderu_-_andhrapradesh_(4).jpg', gallery=True, place='vanjangi'),
+    _photo('vanjangi-sunrise', BOTH, (1600, 640),
+           'The sun rising above a sea of clouds, seen from the Vanjangi hilltop',
+           'Sunrise from the Vanjangi hill top', 'iMahesh', BY_SA_4, 'Sunrise_from_the_Vanjangi_hill_top.jpg',
+           gallery=True, place='vanjangi'),
+    _photo('maredumilli-falls', BOTH, (1600, 841),
+           'Water tumbling over mossy boulders in a forest stream at Maredumilli',
+           'MAREDUMILLI - waterfalls', 'S. Sri Harsha', BY_SA_4, 'MAREDUMILLI_-_waterfalls.jpg',
+           gallery=True, place='maredumilli'),
+    _photo('maredumilli-forest', BOTH, (1600, 854),
+           'Sunlit trees and climbing vines in the forest at Maredumilli',
+           'MAREDUMILLI - forest area', 'S. Sri Harsha', BY_SA_4, 'MAREDUMILLI_-_forest_area.jpg',
+           gallery=True, place='maredumilli'),
 )
 
 BY_KEY = {photo.key: photo for photo in PHOTOS}
@@ -130,7 +148,10 @@ HIGHLIGHTS = (
 
 DEFAULT_HERO = 'valley-dusk'
 # Used for a page that has no hero_image of its own, by page type.
-DEFAULT_FOR_TYPE = {'home': 'valley-dusk', 'package': 'rainbow-hills', 'cab': 'valley-road', 'guide': 'misty-pines'}
+DEFAULT_FOR_TYPE = {
+    'home': 'valley-dusk', 'package': 'rainbow-hills', 'cab': 'valley-road', 'guide': 'misty-pines',
+    'stay': 'terraced-hills', 'article': 'galikonda-view',
+}
 
 
 def get(key):

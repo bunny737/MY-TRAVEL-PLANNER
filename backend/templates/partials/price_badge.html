@@ -1,0 +1,9 @@
+{# A dated partner-quote price (page.display_price). Renders nothing when there is no current price. The partner is never named. #}
+{# The comment markers let the tests find every rupee amount on the site and check it carries a date. #}
+{% with price=page.display_price %}{% if price %}<!--price-->
+<p class="price-badge{% if compact %} price-badge-compact{% endif %}">
+  <span class="price-from">From <strong>{{ price.amount }}</strong> {{ price.unit }}</span>
+  {% if not compact and price.basis %}<span class="price-basis">{{ price.basis }}</span>{% endif %}
+  <span class="price-note">Quote dated {{ price.quoted_on|date:"j M Y" }}.{% if not compact %} Your own quote depends on your dates, vehicle and group size.{% endif %}</span>
+</p>
+<!--/price-->{% endif %}{% endwith %}

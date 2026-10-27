@@ -53,13 +53,14 @@ class FormTestCase(TestCase):
 
 
 class EnquiryFormRenderTests(FormTestCase):
-    def test_get_shows_form_with_disclosure_and_unchecked_consent(self):
+    def test_get_shows_form_with_unchecked_consent_and_no_referral_paragraph(self):
         response = self.client.get(reverse('core:enquiry'))
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
         self.assertIn('name="consent_given"', html)
         self.assertNotRegex(html, r'name="consent_given"[^>]*checked')
-        self.assertIn('We are a travel enquiry and referral platform', html)
+        self.assertIn('may share my name, phone number and trip details with one selected independent travel partner', html)
+        self.assertNotIn('We are a travel enquiry and referral platform', html)
         self.assertIn('share my name, phone number and trip details with one selected', html)
         self.assertIn('csrfmiddlewaretoken', html)
 

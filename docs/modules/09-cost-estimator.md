@@ -29,8 +29,8 @@ Open decision. The four-model limit (invariant 8) means storing quote ranges nee
 Inputs are not personal data and are not stored unless the visitor submits the enquiry form.
 
 ## Open questions / Decisions
-- [OPEN] CONFLICT TO RESOLVE BEFORE BUILDING: on 2026-10-25 the owner decided package/cab pages show no prices. An estimator
-  is, by definition, a price display. Confirm whether it is still wanted (it would be the one place indicative ranges appear).
+- [RESOLVED 2026-10-25] The "no prices" conflict is gone: the owner now allows dated partner-quote "from" prices on package/cab/stay pages
+  (Module 02, "Full site build"). The estimator is still not built; ranges here would reuse the same dated-quote rule.
 - [OPEN] Quote-range storage (see Data model). 
 - [OPEN] Server-rendered form post vs small client-side JS (default: server-rendered).
 

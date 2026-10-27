@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load cta %}
+{% block title %}Tour Packages, Cabs and Stays for Araku, Lambasingi and Vizag | {{ site.name }}{% endblock %}
+{% block meta_description %}Browse trips, cab options and stays around Araku Valley, Lambasingi and Vizag. Ask for a free quote and an independent local partner replies.{% endblock %}
+{% block og_title %}Tour Packages, Cabs and Stays for Araku, Lambasingi and Vizag{% endblock %}
+{% block og_description %}Browse trips, cab options and stays around Araku Valley, Lambasingi and Vizag. Ask for a free quote.{% endblock %}
+
+{% block page_header %}
+  {% include "partials/page_header.html" with eyebrow="Trips, cabs and stays" title="Tour packages, cabs and stays" lead="Pick a trip, a cab or a stay and ask for a free quote. An independent local partner prepares it for your dates and group size." %}
+{% endblock %}
+
+{% block content %}
+  <div class="listing-filters">
+    {% if type_tabs %}
+      <nav class="filter-row" aria-label="Filter by type">
+        <span class="filter-label" aria-hidden="true">Type</span>
+        <div class="filter-chips">{% for tab in type_tabs %}<a class="chip{% if tab.active %} active{% endif %}" href="{{ tab.href }}"{% if tab.active %} aria-current="true"{% endif %}>{{ tab.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    {% if destination_chips %}
+      <nav class="filter-row" aria-label="Filter by place">
+        <span class="filter-label" aria-hidden="true">Place</span>
+        <div class="filter-chips">{% for chip in destination_chips %}<a class="chip{% if chip.active %} active{% endif %}" href="{{ chip.href }}"{% if chip.active %} aria-current="true"{% endif %}>{{ chip.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    {% if show_duration_chips %}
+      <nav class="filter-row" aria-label="Filter by trip length">
+        <span class="filter-label" aria-hidden="true">Trip length</span>
+        <div class="filter-chips">{% for chip in duration_chips %}<a class="chip{% if chip.active %} active{% endif %}" href="{{ chip.href }}"{% if chip.active %} aria-current="true"{% endif %}>{{ chip.label }}</a>{% endfor %}</div>
+      </nav>
+    {% endif %}
+    <form class="listing-sort" method="get" action="{% url 'core:tour_packages' %}">
+      {% if filters.type != 'all' %}<input type="hidden" name="type" value="{{ filters.type }}">{% endif %}
+      {% if filters.destination %}<input type="hidden" name="destination" value="{{ filters.destination }}">{% endif %}
+      {% if filters.days %}<input type="hidden" name="days" value="{{ filters.days }}">{% endif %}
+      <p class="listing-count" role="status">{{ result_count }} trip{{ result_count|pluralize }} shown</p>
+      <div class="listing-sort-controls">
+        <label for="listing-sort">Sort by</label>
+        <select id="listing-sort" name="sort">
+          {% for option in sort_options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+        </select>
+        <button class="button button-outline" type="submit">Apply</button>
+        {% if is_filtered or filters.sort != 'recommended' %}<a class="listing-clear" href="{{ clear_href }}">Clear filters</a>{% endif %}
+      </div>
+    </form>
+    {% if filters.sort == 'price' %}
+      <p class="muted listing-note">Only trips with a current dated partner quote are ranked by price; the rest follow. Prices are "from" amounts and your own quote depends on your dates and group size.</p>
+    {% endif %}
+  </div>
+
+  {% for group in package_groups %}
+    <section class="content-section listing-section" aria-labelledby="group-{{ forloop.counter }}">
+      <div class="section-header">
+        <span class="eyebrow">Tour packages</span>
+        <h2 id="group-{{ forloop.counter }}">{% if group.destination %}{{ group.destination.name }}{% else %}More trips{% endif %}</h2>
+      </div>
+      <ul class="trip-cards">{% for trip in group.pages %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endfor %}
+
+  {% if packages %}
+    <section class="content-section listing-section" aria-labelledby="packages-heading">
+      <div class="section-header"><span class="eyebrow">Tour packages</span><h2 id="packages-heading">Tour packages</h2></div>
+      <ul class="trip-cards">{% for trip in packages %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  {% if cabs %}
+    <section id="cabs" class="content-section listing-section" aria-labelledby="cabs-heading">
+      <div class="section-header"><span class="eyebrow">Transport</span><h2 id="cabs-heading">Cabs, tempo travellers and buses</h2></div>
+      <ul class="trip-cards">{% for trip in cabs %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  {% if stays %}
+    <section id="stays" class="content-section listing-section" aria-labelledby="stays-heading">
+      <div class="section-header"><span class="eyebrow">Places to stay</span><h2 id="stays-heading">Hotels and stays</h2></div>
+      <ul class="trip-cards">{% for trip in stays %}{% include "partials/trip_card.html" %}{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  {% if not has_results %}
+    <p class="muted listing-empty">
+      {% if is_filtered %}No trips match these filters. <a href="{{ clear_href }}">Clear the filters</a> or tell us what you have in mind below.
+      {% else %}Our trip pages are being prepared. You can still <a href="{% url 'core:enquiry' %}">ask for a free quote</a> and tell us where you want to go.{% endif %}
+    </p>
+  {% endif %}
+{% endblock %}
+
+{% block after_content %}
+  <section class="band band-forest cta-band">
+    <div class="container cta-band-inner">
+      <h2>Can't find the trip you want?</h2>
+      <p>Tell us your dates, group size and the places you want to see, and an independent local partner will suggest a plan and quote. Asking is free.</p>
+      {% url 'core:enquiry' as enquiry_url %}
+      {% include "partials/cta_block.html" with quote_href=enquiry_url %}
+    </div>
+  </section>
+{% endblock %}

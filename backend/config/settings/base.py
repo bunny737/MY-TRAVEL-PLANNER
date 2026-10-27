@@ -123,6 +123,8 @@ CONSENT_NOTICE_VERSION = env('CONSENT_NOTICE_VERSION', default='2026-10-v1')
 LEAD_NOTIFY_EMAIL = env('LEAD_NOTIFY_EMAIL', default='')
 LEAD_FORM_THROTTLE = env('LEAD_FORM_THROTTLE', default='5/3600')  # "<count>/<seconds>", used by Module 05
 PILOT_REFERRALS_PER_PARTNER = env.int('PILOT_REFERRALS_PER_PARTNER', default=3)  # free referrals before fees (plan §7)
+# A page price copied from a partner quote hides itself after this many days (CLAUDE.md invariant 3: dated, sourced prices).
+PRICE_MAX_AGE_DAYS = env.int('PRICE_MAX_AGE_DAYS', default=90)
 
 # --- Tracking IDs (Module 06). Blank = tag not rendered. ---
 GA4_MEASUREMENT_ID = env('GA4_MEASUREMENT_ID', default='')

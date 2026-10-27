@@ -43,6 +43,24 @@ def destination_menu(context, variant='nav'):
     }
 
 
+NAV_MENU_LIMIT = 8
+
+
+@register.inclusion_tag('partials/page_menu.html', takes_context=True)
+def page_menu(context, label, page_types, all_url):
+    """A nav dropdown of published pages of the given types (comma-separated), e.g. {% page_menu "Tour packages" "package" url %}.
+
+    With nothing published the menu is not drawn, so a visitor is never offered an empty list. Drafts are never linked.
+    """
+    request = context.get('request')
+    types = page_types.split(',')
+    pages = list(ContentPage.objects.published().filter(page_type__in=types)[:NAV_MENU_LIMIT])
+    return {
+        'label': label, 'pages': pages, 'all_url': all_url,
+        'current_path': request.path if request else '',
+    }
+
+
 @register.inclusion_tag('partials/destination_cards.html', takes_context=True)
 def destination_cards(context, heading_level=3):
     return {'entries': destination_entries(), 'heading_level': heading_level, 'site': context.get('site')}

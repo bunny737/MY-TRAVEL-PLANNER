@@ -1,0 +1,14 @@
+{% if pages %}
+  <li class="nav-dropdown-item">
+    {# Same no-JS <details> dropdown as the Destinations menu. #}
+    <details class="nav-dropdown">
+      <summary class="nav-link">{{ label }}</summary>
+      <ul class="nav-dropdown-list">
+        {% for page in pages %}
+          <li><a class="nav-dropdown-link{% if current_path == page.get_absolute_url %} active{% endif %}" href="{{ page.get_absolute_url }}">{{ page.title }}</a></li>
+        {% endfor %}
+        <li><a class="nav-dropdown-link nav-dropdown-all" href="{{ all_url }}">See all &rarr;</a></li>
+      </ul>
+    </details>
+  </li>
+{% endif %}
