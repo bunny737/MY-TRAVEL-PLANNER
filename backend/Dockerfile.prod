@@ -1,7 +1,7 @@
 # Production image for Google Cloud Run (Module 07). Build from backend/:
 #   docker build -f Dockerfile.prod -t travel-web .
 # Runtime config comes only from environment variables / Secret Manager (see deploy/cloudrun/).
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
