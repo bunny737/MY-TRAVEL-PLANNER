@@ -1,0 +1,59 @@
+# nginx edge for mytravelplanner.in, a guest on the pglive-worker VM (owner decision 2026-10-27: share that VM's
+# nginx instead of a load balancer). Rendered by deploy/edge/setup-travel-edge.sh into /etc/nginx/conf.d/travel.conf;
+# ${TRAVEL_HOST} is the Cloud Run *.run.app hostname of travel-web.
+#
+# Rules for living next to PGLive's own conf.d file: never a default server, no shared zone, variable or snippet names,
+# every directive is inside our own server blocks. Unknown hosts keep falling through to PGLive's 444 servers.
+# Written for Debian 12's nginx 1.22 (hence "listen ... http2").
+#
+# What reaches Django (docs/deployment.md §5):
+# - Host = the run.app name (Cloud Run routes on it), X-Forwarded-Host = the public host (USE_X_FORWARDED_HOST);
+# - X-Forwarded-For is OVERWRITTEN with the real peer; Google appends the VM, so CLIENT_IP_TRUSTED_HOPS=2;
+# - X-Travel-Edge-Key (from the root-only include file) proves the request came through here (EdgeSecretMiddleware).
+# All proxy_set_header lines sit at server level: a location that set its own would drop every inherited one.
+
+server {
+    listen 80;
+    server_name mytravelplanner.in www.mytravelplanner.in;
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 301 https://mytravelplanner.in$request_uri; }
+}
+
+# www -> apex, one redirect, query string kept (ad click IDs survive).
+server {
+    listen 443 ssl http2;
+    server_name www.mytravelplanner.in;
+    ssl_certificate     /etc/letsencrypt/live/mytravelplanner.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mytravelplanner.in/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    return 301 https://mytravelplanner.in$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name mytravelplanner.in;
+    ssl_certificate     /etc/letsencrypt/live/mytravelplanner.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mytravelplanner.in/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    resolver 169.254.169.254 valid=300s ipv6=off;   # GCE metadata DNS; the run.app address is re-resolved, not pinned
+    set $travel_upstream ${TRAVEL_HOST};
+
+    proxy_http_version 1.1;
+    proxy_ssl_server_name on;
+    proxy_ssl_name $travel_upstream;
+    proxy_set_header Host $travel_upstream;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Connection "";
+    include /etc/nginx/travel-edge-key.conf;        # proxy_set_header X-Travel-Edge-Key "..."; overwrites a client value
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 70s;
+    proxy_send_timeout 70s;
+    client_max_body_size 1m;                        # the site takes no uploads
+
+    location / {
+        proxy_pass https://$travel_upstream;         # no URI part: the request URI goes through untouched
+    }
+}

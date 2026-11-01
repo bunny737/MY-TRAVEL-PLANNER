@@ -103,7 +103,18 @@ the site never places personal data in URLs.
 - [DECISION 2026-10-25] The throttle cache moved from files to the database on Cloud Run (`CACHE_BACKEND=db`); the file cache remains the default
   for local development and for a single-host setup.
 - [DECISION 2026-10-25] No custom `Dockerfile` healthcheck: Cloud Run probes the port; `/health/` stays available for uptime checks.
-- [OPEN] Region and how to attach the domain (domain mapping vs load balancer) — depends on the Cloud Run region of the existing project.
+- [DECISION 2026-10-27] The "existing instance" is PGLive's `pglive-pg-prod` (live). PGLive must not be disturbed. Owner chose **our own GCP
+  project** for the service, image, secrets and jobs; the only change in `pglive-prod` is a `roles/cloudsql.client` binding for our runtime SA.
+- [DECISION 2026-10-27] Region asia-south1 (same as the instance). Domain through **PGLive's nginx edge VM** (owner; domain mappings aren't
+  offered in asia-south1, and a load balancer costs about $18/month): our own `conf.d/travel.conf` and our own LE cert, with PGLive's files untouched.
+- [DECISION 2026-10-27] Judgement calls that follow from sharing the instance and VM:
+  `travel_app` is created in SQL (`deploy/cloudsql/create-travel-db.sql`), not with `gcloud sql users create`, which would add cloudsqlsuperuser.
+  It has CONNECTION LIMIT 12 and `MAX_INSTANCES` defaults to 2, because the db-g1-small has ~50 connections.
+  The old "patch the backup window" step was removed (the window is PGLive's).
+  `deploy.sh` refuses `pglive-*` projects.
+  `USE_X_FORWARDED_HOST` + `CLIENT_IP_TRUSTED_HOPS=2` for the nginx hop.
+  `EdgeSecretMiddleware` + `EDGE_SHARED_SECRET` locks out direct `*.run.app` access, because `internal` ingress can't admit another project's VM.
+  The lock turns on when the `travel-edge-secret` secret exists.
 - [OPEN] Cookie/analytics consent banner and legal review (open-decisions) — needed before real GA4/Ads IDs go in.
 - [OPEN] Ads are submitted for review by Day 7 but may not serve; do not count that as a failed launch (plan §6).
 - [OPEN] Deploy automation (GitHub Actions → `deploy.sh release`): add after the first manual release works.
@@ -112,3 +123,9 @@ the site never places personal data in URLs.
 - 2026-10-25  Created stub from the project setup.
 - 2026-10-25  Built: admin MFA, Cloud Run settings (db cache, trusted client IP, www redirect), production image, deploy and backup scripts,
   deployment guide, 35 tests (274 in total).
+- 2026-10-27  Deployment adapted to PGLive's shared instance and nginx edge: edge-lock middleware, forwarded-host setting, SQL role script,
+  nginx server block + setup script + coexistence test (`deploy/edge/test-travel-edge.sh`, passes against PGLive's real config), 11 new tests
+  (466 in total, all passing).
+- 2026-10-27  Deployed: project `mytravelplanner-prod`, database `travel_platform` on `pglive-pg-prod`, edge on `pglive-worker` with a Let's
+  Encrypt cert (expires 2027-01-25, auto-renews), edge lock on, owner superuser created, daily clearsessions scheduled, launch content seeded.
+  `postgres` password reset (owner-approved) and stored as `POSTGRES_ADMIN_PASSWORD` in pglive-prod. No SMTP yet (LEAD_NOTIFY_EMAIL blank).

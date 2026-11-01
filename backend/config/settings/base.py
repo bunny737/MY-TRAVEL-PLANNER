@@ -29,6 +29,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'apps.core.middleware.EdgeSecretMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'apps.core.middleware.CanonicalHostMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -166,6 +167,12 @@ else:
 
 # Hosts that answer with a 301 to the canonical SITE_BASE_URL host (e.g. www.mytravelplanner.in). Blank = none.
 REDIRECT_TO_CANONICAL_HOSTS = env.list('REDIRECT_TO_CANONICAL_HOSTS', default=[])
+# Behind the nginx edge (docs/deployment.md §5) Host is the *.run.app name, because Cloud Run routes on it; the public
+# host arrives in X-Forwarded-Host, which nginx overwrites. ALLOWED_HOSTS still validates it. Off without that proxy.
+USE_X_FORWARDED_HOST = env.bool('USE_X_FORWARDED_HOST', default=False)
+# Shared with the nginx edge, which sends it as X-Travel-Edge-Key. When set, requests without it get a 403, so nobody
+# can reach the *.run.app URL directly and forge the client IP (EdgeSecretMiddleware). Blank = no check.
+EDGE_SHARED_SECRET = env('EDGE_SHARED_SECRET', default='')
 
 # --- Admin second factor (Module 07; owner decision 2026-10-25). Always on in production (prod.py). ---
 ADMIN_REQUIRE_MFA = env.bool('ADMIN_REQUIRE_MFA', default=False)
