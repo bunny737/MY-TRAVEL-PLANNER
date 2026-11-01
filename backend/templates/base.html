@@ -9,7 +9,8 @@
   {% block canonical %}<link rel="canonical" href="{{ site.base_url }}{{ request.path }}">{% endblock %}
   {% if tracking.site_verification %}<meta name="google-site-verification" content="{{ tracking.site_verification }}">{% endif %}
   <meta name="theme-color" content="#2d6a4f">
-  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'img/logo-icon.png' %}">
   {# Link previews (WhatsApp, social). The image is a licensed library photo, see /photo-credits/. #}
   {% with og_key=og_image_key|default:"valley-dusk" %}
   {% photo_url og_key 1600 as og_image %}
@@ -35,12 +36,7 @@
   <header class="site-header">
     <div class="container header-container">
       <a class="brand" href="/">
-        <span class="brand-icon-wrapper" aria-hidden="true">
-          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-          </svg>
-        </span>
-        <span class="brand-name">{{ site.name }}</span>
+        <img class="brand-logo" src="{% static 'img/logo.png' %}" alt="{{ site.name }}" width="720" height="176">
       </a>
       {% block nav %}
         <nav class="site-nav" aria-label="Main Navigation">
@@ -84,9 +80,7 @@
         <div class="footer-grid">
           <div class="footer-col brand-col">
             <div class="footer-brand">
-              <span class="brand-icon-wrapper" aria-hidden="true">
-                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
-              </span>
+              <img class="footer-logo-icon" src="{% static 'img/logo-icon.png' %}" alt="" width="192" height="192">
               {{ site.name }}
             </div>
             <p class="footer-tagline">We connect travellers with independent local tour and cab partners for trips to Araku Valley, Lambasingi, Vizag and the Eastern Ghats. Asking for a quote is free.</p>

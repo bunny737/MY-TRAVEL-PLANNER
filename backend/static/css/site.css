@@ -4336,3 +4336,26 @@ a.button.button-saffron:hover {
   white-space: nowrap;
   border: 0;
 }
+
+/* ---- Logo (2026-11-01): image logo in header, icon + name in the dark footer ---------------- */
+.brand-logo {
+  display: block;
+  height: 44px;
+  width: auto;
+}
+
+.brand:hover .brand-logo {
+  opacity: 0.92;
+}
+
+.footer-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .brand-logo {
+    height: 38px;
+  }
+}

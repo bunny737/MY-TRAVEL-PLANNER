@@ -193,7 +193,8 @@ class PagesWithPhotosTests(TestCase):
         make_page(slug='trip-one', title='Trip One')
         make_page(slug='trip-two', title='Trip Two', page_type='cab')
         html = self.client.get('/').content.decode()
-        tags = img_tags(html)
+        # The brand logo and footer icon are PNG branding, not photos; the photo rules apply to the rest.
+        tags = [t for t in img_tags(html) if 'brand-logo' not in t and 'footer-logo-icon' not in t]
         self.assertGreaterEqual(len(tags), 6)  # hero + 2 cards + gallery
         self.assertEqual(sum('fetchpriority="high"' in t for t in tags), 1)
         self.assertIn('hero-photo-img', next(t for t in tags if 'fetchpriority="high"' in t))
@@ -282,10 +283,16 @@ class OpenGraphAndIconTests(TestCase):
         self.assertIn(f'content="{SITE}/static/img/photos/borra-caves-800.webp"', html)
 
     def test_favicon_is_linked_and_exists(self):
-        self.assertIn('rel="icon" href="/static/img/favicon.svg"', self.client.get('/').content.decode())
-        svg = (BACKEND_DIR / 'static' / 'img' / 'favicon.svg').read_text(encoding='utf-8')
-        self.assertIn('<svg', svg)
-        self.assertNotIn('<script', svg)
+        html = self.client.get('/').content.decode()
+        self.assertIn('rel="icon" href="/static/img/favicon.png"', html)
+        for name in ('favicon.png', 'logo.png', 'logo-icon.png'):
+            data = (BACKEND_DIR / 'static' / 'img' / name).read_bytes()
+            self.assertTrue(data.startswith(b'\x89PNG'), name)
+
+    def test_header_shows_the_logo_with_the_site_name_as_alt_text(self):
+        html = self.client.get('/').content.decode()
+        self.assertIn('src="/static/img/logo.png"', html)
+        self.assertIn('class="brand-logo"', html)
 
 
 class PhotoCreditsTests(TestCase):
